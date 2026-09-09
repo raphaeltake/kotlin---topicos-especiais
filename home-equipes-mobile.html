@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home — Minhas Equipes (Mobile)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8FAFC;
+    --card-main:#FFFFFF;
+    --text:#1E293B;
+    --accent:#2563EB;
+    --pending:#22C55E;
+    --progress:#F59E0B;
+    --expiring:#EF4444;
+    --border:#64748B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:#E2E8F0;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:32px 16px;
+    font-family:'Poppins', sans-serif;
+    color:var(--text);
+    min-height:100vh;
+  }
+  .font-nunito{ font-family:'Nunito', sans-serif; }
+
+  .phone{
+    width:390px;
+    max-width:100%;
+    height:844px;
+    background:var(--bg);
+    border-radius:44px;
+    border:10px solid #0F172A;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(15,23,42,.45);
+    display:flex;
+    flex-direction:column;
+  }
+  .status-bar{
+    height:44px;
+    flex:0 0 auto;
+    background:var(--card-main);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 26px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .status-bar .icons{ display:flex; align-items:center; gap:5px; }
+  .status-bar svg{ width:16px; height:16px; }
+
+  .topbar{
+    flex:0 0 auto;
+    background:var(--card-main);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 16px 14px;
+    border-bottom:1px solid #E2E8F0;
+  }
+  .icon-btn{
+    background:none;
+    border:none;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:4px;
+  }
+  .icon-btn svg{ width:22px; height:22px; }
+  .logo svg{ width:26px; height:26px; }
+  .topbar .right{ display:flex; align-items:center; gap:14px; }
+
+  .content{
+    flex:1 1 auto;
+    overflow-y:auto;
+    padding:16px 16px 24px;
+  }
+  .content::-webkit-scrollbar{ display:none; }
+
+  /* ---- action buttons ---- */
+  .actions-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .btn-primary{
+    flex:1;
+    background:var(--accent);
+    color:var(--card-main);
+    border:none;
+    border-radius:12px;
+    padding:12px 10px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    cursor:pointer;
+    text-align:center;
+  }
+  .btn-primary svg{ width:17px; height:17px; flex:0 0 auto; }
+
+  /* ---- section label ---- */
+  .section-label{
+    font-size:13px;
+    font-weight:600;
+    color:#475569;
+    margin-bottom:10px;
+  }
+
+  /* ---- team list ---- */
+  .team-list{ display:flex; flex-direction:column; gap:10px; }
+  .team-card{
+    background:var(--bg);
+    border-radius:12px;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    cursor:pointer;
+  }
+  .team-name{ font-size:15px; font-weight:700; }
+  .team-desc{
+    font-size:12.5px;
+    color:#475569;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .team-stats{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding-top:8px;
+    border-top:1px solid #E2E8F0;
+  }
+  .stat{ display:flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:var(--text); }
+  .stat svg{ width:15px; height:15px; flex:0 0 auto; }
+  .stat.new-tasks{ color:var(--accent); }
+
+  /* ---- empty state (hidden by default, kept for reference) ---- */
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8c5-4 15-4 20 0M5 12c4-3 10-3 14 0M8.5 16c2-1.5 5-1.5 7 0" stroke-linecap="round"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="8" width="18" height="10" rx="2"/><rect x="21" y="11" width="2" height="4" fill="currentColor" stroke="none"/><rect x="4" y="10" width="12" height="6" fill="currentColor" stroke="none"/></svg>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M2 9l5 9 5-11 5 11 5-9" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="right">
+      <button class="icon-btn" aria-label="Convites">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn" aria-label="Notificações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9z" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 01-3.4 0" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" aria-label="Sair">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <div class="actions-row">
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6" stroke-linecap="round"/></svg>
+        Criar equipe
+      </button>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 16l4-4-4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12h11" stroke-linecap="round"/><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Entrar em equipe
+      </button>
+    </div>
+
+    <div class="section-label">Suas equipes</div>
+
+    <div class="team-list">
+      <div class="team-card">
+        <div class="team-name">Nome da equipe</div>
+        <div class="team-desc font-nunito">Descrição da equipe</div>
+        <div class="team-stats">
+          <span class="stat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4"/></svg>
+            10 membros
+          </span>
+          <span class="stat new-tasks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            5 novas tarefas
+          </span>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-name">Nome da equipe</div>
+        <div class="team-desc font-nunito">Descrição da equipe</div>
+        <div class="team-stats">
+          <span class="stat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4"/></svg>
+            10 membros
+          </span>
+          <span class="stat new-tasks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            5 novas tarefas
+          </span>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-name">Nome da equipe</div>
+        <div class="team-desc font-nunito">Descrição da equipe</div>
+        <div class="team-stats">
+          <span class="stat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4"/></svg>
+            10 membros
+          </span>
+          <span class="stat new-tasks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            5 novas tarefas
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

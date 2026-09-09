@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Descrição Tarefa Pendente (Mobile)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8FAFC;
+    --card-main:#FFFFFF;
+    --text:#1E293B;
+    --accent:#2563EB;
+    --pending:#22C55E;
+    --progress:#F59E0B;
+    --expiring:#EF4444;
+    --border:#64748B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:#E2E8F0;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:32px 16px;
+    font-family:'Poppins', sans-serif;
+    color:var(--text);
+    min-height:100vh;
+  }
+  .font-nunito{ font-family:'Nunito', sans-serif; }
+
+  .phone{
+    width:390px;
+    max-width:100%;
+    height:844px;
+    background:var(--bg);
+    border-radius:44px;
+    border:10px solid #0F172A;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(15,23,42,.45);
+    display:flex;
+    flex-direction:column;
+  }
+  .status-bar{
+    height:44px;
+    flex:0 0 auto;
+    background:var(--card-main);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 26px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .status-bar .icons{ display:flex; align-items:center; gap:5px; }
+  .status-bar svg{ width:16px; height:16px; }
+
+  .topbar{
+    flex:0 0 auto;
+    background:var(--card-main);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 16px 14px;
+    border-bottom:1px solid #E2E8F0;
+  }
+  .topbar .left{ display:flex; align-items:center; gap:12px; }
+  .icon-btn{
+    background:none;
+    border:none;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:4px;
+  }
+  .icon-btn svg{ width:22px; height:22px; }
+  .logo svg{ width:24px; height:24px; }
+  .topbar .right{ display:flex; align-items:center; gap:14px; }
+
+  .content{
+    flex:1 1 auto;
+    overflow-y:auto;
+    padding:16px 16px 150px;
+  }
+  .content::-webkit-scrollbar{ display:none; }
+
+  /* ---- task header card ---- */
+  .task-card{
+    background:var(--card-main);
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .task-title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .task-title-row .name-group{ display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap; }
+  .task-title-row h1{ font-size:19px; font-weight:700; }
+  .status-pill{
+    font-size:11px;
+    font-weight:600;
+    padding:3px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+    background:rgba(34,197,94,.12);
+    color:var(--pending);
+  }
+  .task-date{
+    flex:0 0 auto;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .task-date svg{ width:15px; height:15px; }
+
+  .responsible-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding-top:10px;
+    border-top:1px solid #E2E8F0;
+  }
+  .responsible-row .label{ font-size:13px; font-weight:600; color:#475569; }
+  .responsible-row .names{ font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .responsible-row .edit-btn{ flex:0 0 auto; color:var(--accent); }
+  .responsible-row .edit-btn svg{ width:16px; height:16px; }
+
+  /* ---- description ---- */
+  .desc-card{
+    background:var(--card-main);
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .desc-card h2{ font-size:15px; font-weight:700; margin-bottom:8px; }
+  .desc-card p{
+    font-size:13.5px;
+    line-height:1.55;
+    color:#334155;
+    margin-bottom:10px;
+  }
+  .desc-card p:last-child{ margin-bottom:0; }
+
+  /* ---- comments ---- */
+  .comments-card{
+    background:var(--card-main);
+    border-radius:16px;
+    padding:16px;
+  }
+  .comments-card h2{ font-size:15px; font-weight:700; margin-bottom:12px; }
+
+  .btn-primary{
+    width:100%;
+    background:var(--accent);
+    color:var(--card-main);
+    border:none;
+    border-radius:12px;
+    padding:12px 16px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+  .btn-primary svg{ width:17px; height:17px; }
+
+  .comment{
+    background:var(--bg);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .comment:last-child{ margin-bottom:0; }
+  .comment-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .comment-author{ display:flex; align-items:center; gap:6px; min-width:0; }
+  .comment-author .name{ font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .comment-author .edited-tag{ font-size:10.5px; color:#64748B; font-weight:500; flex:0 0 auto; }
+  .comment-top .edit-btn{ flex:0 0 auto; color:var(--text); opacity:.55; }
+  .comment-top .edit-btn svg{ width:14px; height:14px; }
+  .comment-text{ font-size:13px; line-height:1.5; color:#475569; }
+
+  /* ---- bottom actions ---- */
+  .bottom-actions{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    background:var(--card-main);
+    border-top:1px solid #E2E8F0;
+    padding:12px 16px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .btn-primary.no-margin{ margin-bottom:0; }
+  .btn-outline{
+    width:100%;
+    background:var(--card-main);
+    color:var(--accent);
+    border:1.5px solid var(--accent);
+    border-radius:12px;
+    padding:11px 16px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+  }
+  .btn-outline svg{ width:16px; height:16px; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8c5-4 15-4 20 0M5 12c4-3 10-3 14 0M8.5 16c2-1.5 5-1.5 7 0" stroke-linecap="round"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="8" width="18" height="10" rx="2"/><rect x="21" y="11" width="2" height="4" fill="currentColor" stroke="none"/><rect x="4" y="10" width="12" height="6" fill="currentColor" stroke="none"/></svg>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="left">
+      <button class="icon-btn" aria-label="Voltar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M2 9l5 9 5-11 5 11 5-9" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="right">
+      <button class="icon-btn" aria-label="Notificações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9z" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 01-3.4 0" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" aria-label="Sair">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <section class="task-card">
+      <div class="task-title-row">
+        <div class="name-group">
+          <h1>Título tarefa</h1>
+          <span class="status-pill">Pendente</span>
+        </div>
+        <span class="task-date">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12M6 22h12M6 2c0 5 12 5 12 0M6 22c0-5 12-5 12 0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          09/03/2026
+        </span>
+      </div>
+      <div class="responsible-row">
+        <span class="names">nome responsável 1 | nome responsável 2 …</span>
+        <button class="icon-btn edit-btn" aria-label="Editar responsáveis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="desc-card">
+      <h2>Descrição:</h2>
+      <p class="font-nunito">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+      <p class="font-nunito">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </section>
+
+    <section class="comments-card">
+      <h2>Comentários</h2>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Comentar
+      </button>
+
+      <div class="comment">
+        <div class="comment-top">
+          <div class="comment-author">
+            <span class="name">Nome integrante</span>
+            <span class="edited-tag">editado</span>
+          </div>
+          <button class="icon-btn edit-btn" aria-label="Editar comentário">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p class="comment-text font-nunito">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      </div>
+
+      <div class="comment">
+        <div class="comment-top">
+          <div class="comment-author">
+            <span class="name">Nome integrante</span>
+          </div>
+          <button class="icon-btn edit-btn" aria-label="Editar comentário">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p class="comment-text font-nunito">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="bottom-actions">
+    <button class="btn-primary no-margin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4V8z" fill="currentColor" stroke="none"/></svg>
+      Iniciar tarefa
+    </button>
+    <button class="btn-outline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m3 0v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12z" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke-linecap="round"/></svg>
+      Apagar tarefa
+    </button>
+  </div>
+
+</div>
+
+</body>
+</html>

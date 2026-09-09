@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipe — Home Administrador (Mobile)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8FAFC;
+    --card-main:#FFFFFF;
+    --text:#1E293B;
+    --accent:#2563EB;
+    --pending:#22C55E;
+    --progress:#F59E0B;
+    --expiring:#EF4444;
+    --border:#64748B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:#E2E8F0;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:32px 16px;
+    font-family:'Poppins', sans-serif;
+    color:var(--text);
+    min-height:100vh;
+  }
+  .font-nunito{ font-family:'Nunito', sans-serif; }
+
+  /* ---- phone frame ---- */
+  .phone{
+    width:390px;
+    max-width:100%;
+    height:844px;
+    background:var(--bg);
+    border-radius:44px;
+    border:10px solid #0F172A;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(15,23,42,.45);
+    display:flex;
+    flex-direction:column;
+  }
+  .status-bar{
+    height:44px;
+    flex:0 0 auto;
+    background:var(--card-main);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 26px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .status-bar .icons{ display:flex; align-items:center; gap:5px; }
+  .status-bar svg{ width:16px; height:16px; }
+
+  /* ---- top app bar ---- */
+  .topbar{
+    flex:0 0 auto;
+    background:var(--card-main);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 16px 14px;
+    border-bottom:1px solid #E2E8F0;
+  }
+  .topbar .left{ display:flex; align-items:center; gap:12px; }
+  .icon-btn{
+    background:none;
+    border:none;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:4px;
+  }
+  .icon-btn svg{ width:22px; height:22px; }
+  .logo{ display:flex; align-items:center; gap:8px; }
+  .logo svg{ width:24px; height:24px; }
+  .logo span{ font-weight:700; font-size:15px; letter-spacing:.2px; }
+  .topbar .right{ display:flex; align-items:center; gap:14px; }
+
+  /* ---- scroll area ---- */
+  .content{
+    flex:1 1 auto;
+    overflow-y:auto;
+    padding:16px 16px 90px;
+  }
+  .content::-webkit-scrollbar{ display:none; }
+
+  /* ---- team header card ---- */
+  .team-card{
+    background:var(--card-main);
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .team-title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:6px;
+  }
+  .team-title-row .name-group{ display:flex; align-items:center; gap:8px; min-width:0; }
+  .team-title-row h1{
+    font-size:20px;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .team-title-row .edit-btn{ flex:0 0 auto; color:var(--accent); }
+  .team-title-row .edit-btn svg{ width:17px; height:17px; }
+  .member-badge{
+    flex:0 0 auto;
+    background:var(--bg);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-size:11px;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .team-desc{
+    font-size:13.5px;
+    color:#475569;
+    line-height:1.4;
+  }
+
+  /* ---- tabs ---- */
+  .tabs{
+    display:flex;
+    background:var(--bg);
+    border:1px solid #E2E8F0;
+    border-radius:12px;
+    padding:4px;
+    margin-bottom:16px;
+    gap:4px;
+  }
+  .tab{
+    flex:1;
+    border:none;
+    background:transparent;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--text);
+    padding:9px 0;
+    border-radius:9px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .tab.active{
+    background:var(--card-main);
+    color:var(--accent);
+    box-shadow:0 1px 3px rgba(15,23,42,.12);
+  }
+  .tab .count{
+    font-size:10.5px;
+    background:var(--bg);
+    color:var(--text);
+    border-radius:999px;
+    padding:1px 6px;
+  }
+  .tab.active .count{ background:#EFF6FF; color:var(--accent); }
+
+  /* ---- panel ---- */
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+  .panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .panel-header h2{ font-size:17px; font-weight:700; }
+  .panel-header .icon-btn svg{ width:20px; height:20px; }
+
+  .btn-primary{
+    width:100%;
+    background:var(--accent);
+    color:var(--card-main);
+    border:none;
+    border-radius:12px;
+    padding:13px 16px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+  .btn-primary svg{ width:18px; height:18px; }
+
+  /* ---- task cards ---- */
+  .task-list{ display:flex; flex-direction:column; gap:10px; }
+  .task-card{
+    background:var(--bg);
+    border-radius:10px;
+    padding:12px 14px;
+    border-left:4px solid var(--pending);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .task-card.progress{ border-left-color:var(--progress); }
+  .task-card.expiring{ border-left-color:var(--expiring); }
+  .task-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .task-title{ font-size:14.5px; font-weight:600; }
+  .status-pill{
+    font-size:10.5px;
+    font-weight:600;
+    padding:2px 8px;
+    border-radius:999px;
+    white-space:nowrap;
+    flex:0 0 auto;
+  }
+  .task-card .status-pill{ background:rgba(34,197,94,.12); color:var(--pending); }
+  .task-card.progress .status-pill{ background:rgba(245,158,11,.14); color:var(--progress); }
+  .task-card.expiring .status-pill{ background:rgba(239,68,68,.12); color:var(--expiring); }
+  .task-meta{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .task-responsible{ font-size:12px; color:#475569; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .task-date{ font-size:12px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:4px; flex:0 0 auto; }
+  .task-date svg{ width:13px; height:13px; }
+
+  /* ---- member rows ---- */
+  .member-list{ display:flex; flex-direction:column; gap:10px; }
+  .member-row{
+    background:var(--bg);
+    border-radius:10px;
+    padding:11px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .member-name{ font-size:14px; font-weight:600; }
+  .member-role{ font-size:12px; font-weight:600; color:var(--accent); }
+  .member-role.role-muted{ color:#475569; }
+
+  /* ---- bottom action ---- */
+  .bottom-actions{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    background:var(--card-main);
+    border-top:1px solid #E2E8F0;
+    padding:12px 16px 20px;
+  }
+  .btn-outline{
+    width:100%;
+    background:var(--card-main);
+    color:var(--accent);
+    border:1.5px solid var(--accent);
+    border-radius:12px;
+    padding:12px 16px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+  }
+  .btn-outline svg{ width:17px; height:17px; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8c5-4 15-4 20 0M5 12c4-3 10-3 14 0M8.5 16c2-1.5 5-1.5 7 0" stroke-linecap="round"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="8" width="18" height="10" rx="2"/><rect x="21" y="11" width="2" height="4" fill="currentColor" stroke="none"/><rect x="4" y="10" width="12" height="6" fill="currentColor" stroke="none"/></svg>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="left">
+      <button class="icon-btn" aria-label="Voltar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M2 9l5 9 5-11 5 11 5-9" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="right">
+      <button class="icon-btn" aria-label="Notificações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9z" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 01-3.4 0" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" aria-label="Sair">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <section class="team-card">
+      <div class="team-title-row">
+        <div class="name-group">
+          <h1>Nome equipe</h1>
+          <button class="icon-btn edit-btn" aria-label="Editar nome">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <span class="member-badge">membros: 10</span>
+      </div>
+      <p class="team-desc font-nunito">Descrição da equipe</p>
+    </section>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tab-tarefas" onclick="showPanel('tarefas')">
+        Tarefas <span class="count">3</span>
+      </button>
+      <button class="tab" id="tab-membros" onclick="showPanel('membros')">
+        Membros <span class="count">10</span>
+      </button>
+    </div>
+
+    <section class="panel active" id="panel-tarefas">
+      <div class="panel-header">
+        <h2>Tarefas</h2>
+        <button class="icon-btn" aria-label="Histórico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 4v5h5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>
+        Adicionar tarefa
+      </button>
+
+      <div class="task-list">
+        <div class="task-card">
+          <div class="task-top">
+            <span class="task-title">Título tarefa</span>
+            <span class="status-pill">Pendente</span>
+          </div>
+          <div class="task-meta">
+            <span class="task-responsible">Sem responsável definido</span>
+            <span class="task-date">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12M6 22h12M6 2c0 5 12 5 12 0M6 22c0-5 12-5 12 0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              09/03/2026
+            </span>
+          </div>
+        </div>
+
+        <div class="task-card progress">
+          <div class="task-top">
+            <span class="task-title">Título tarefa</span>
+            <span class="status-pill">Em andamento</span>
+          </div>
+          <div class="task-meta">
+            <span class="task-responsible">nome responsável 1 | nome responsável 2 …</span>
+            <span class="task-date">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12M6 22h12M6 2c0 5 12 5 12 0M6 22c0-5 12-5 12 0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              09/03/2026
+            </span>
+          </div>
+        </div>
+
+        <div class="task-card expiring">
+          <div class="task-top">
+            <span class="task-title">Título tarefa</span>
+            <span class="status-pill">Perto de expirar</span>
+          </div>
+          <div class="task-meta">
+            <span class="task-responsible">Membro</span>
+            <span class="task-date">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12M6 22h12M6 2c0 5 12 5 12 0M6 22c0-5 12-5 12 0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              09/03/2026
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-membros">
+      <div class="panel-header">
+        <h2>Membros</h2>
+        <button class="icon-btn" aria-label="Gerenciar membros">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.9 2.9l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.9-2.9l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.9-2.9l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.9 2.9l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>
+        Adicionar membro
+      </button>
+
+      <div class="member-list">
+        <div class="member-row">
+          <span class="member-name">Nome integrante</span>
+          <span class="member-role">Criador(a)</span>
+        </div>
+        <div class="member-row">
+          <span class="member-name">Nome integrante</span>
+          <span class="member-role">Administrador(a)</span>
+        </div>
+        <div class="member-row">
+          <span class="member-name">Nome integrante</span>
+          <span class="member-role role-muted">Membro</span>
+        </div>
+        <div class="member-row">
+          <span class="member-name">Nome integrante</span>
+          <span class="member-role role-muted">Membro</span>
+        </div>
+        <div class="member-row">
+          <span class="member-name">Nome integrante</span>
+          <span class="member-role role-muted">Membro</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="bottom-actions">
+    <button class="btn-outline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Sair da equipe
+    </button>
+  </div>
+
+</div>
+
+<script>
+  function showPanel(name){
+    document.getElementById('panel-tarefas').classList.toggle('active', name === 'tarefas');
+    document.getElementById('panel-membros').classList.toggle('active', name === 'membros');
+    document.getElementById('tab-tarefas').classList.toggle('active', name === 'tarefas');
+    document.getElementById('tab-membros').classList.toggle('active', name === 'membros');
+  }
+</script>
+
+</body>
+</html>
