@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Syncro</string>
+    <string name="back">Voltar</string>
+    <string name="notifications">Notificações</string>
+    <string name="invite_title">Convide pessoas\npara sua equipe</string>
+    <string name="team_code_label">Código da equipe:</string>
+    <string name="email_label">E-mail:</string>
+    <string name="email_hint">nome@email.com</string>
+    <string name="email_list_label">Lista de e-mails:</string>
+    <string name="invite_button">Convidar</string>
 </resources>
