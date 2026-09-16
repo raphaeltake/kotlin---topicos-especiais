@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "br.com.fatec.syncro"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "br.com.fatec.syncro"
