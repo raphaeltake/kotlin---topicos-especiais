@@ -8,4 +8,12 @@
     <string name="email_hint">nome@email.com</string>
     <string name="email_list_label">Lista de e-mails:</string>
     <string name="invite_button">Convidar</string>
+    <string name="login">Entrar</string>
+    <string name="email_required_error">Informe seu e-mail.</string>
+    <string name="email_invalid_error">Informe um e-mail válido.</string>
+    <string name="logging_in_as">Entrando como:</string>
+    <string name="password_label">Senha:</string>
+    <string name="password_hint">Senha</string>
+    <string name="password_required_error">Informe sua senha.</string>
+    <string name="toggle_password_visibility">Mostrar ou ocultar senha</string>
 </resources>

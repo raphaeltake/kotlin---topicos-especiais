@@ -32,6 +32,7 @@
         app:layout_constraintVertical_bias="0.577" />
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/emailInputLayout"
         android:layout_width="294dp"
         android:layout_height="wrap_content"
         app:boxStrokeColor="@color/gray"

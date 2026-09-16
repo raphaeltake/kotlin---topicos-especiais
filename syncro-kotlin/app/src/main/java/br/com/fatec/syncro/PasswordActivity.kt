@@ -1,0 +1,69 @@
+package br.com.fatec.syncro
+
+import android.os.Bundle
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+
+class PasswordActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.passwordlogin)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.passwordRoot)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+        val email = intent.getStringExtra(EXTRA_EMAIL).orEmpty()
+        findViewById<TextView>(R.id.selectedEmail).text = email
+
+        findViewById<ImageButton>(R.id.backButton).setOnClickListener {
+            finish()
+        }
+
+        val passwordInput = findViewById<TextInputEditText>(R.id.passwordInput)
+        val passwordInputLayout = findViewById<TextInputLayout>(R.id.passwordInputLayout)
+        val loginButton = findViewById<Button>(R.id.passwordLoginButton)
+
+        passwordInput.doAfterTextChanged {
+            passwordInputLayout.error = null
+        }
+
+        loginButton.setOnClickListener {
+            val password = passwordInput.text?.toString().orEmpty()
+            passwordInputLayout.error = if (password.isEmpty()) {
+                getString(R.string.password_required_error)
+            } else {
+                null
+            }
+        }
+
+        passwordInput.setOnEditorActionListener { _, actionId, event ->
+            val enterPressed = event?.keyCode == KeyEvent.KEYCODE_ENTER &&
+                event.action == KeyEvent.ACTION_DOWN
+
+            if (actionId == EditorInfo.IME_ACTION_DONE || enterPressed) {
+                loginButton.performClick()
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    companion object {
+        const val EXTRA_EMAIL = "extra_email"
+    }
+}
