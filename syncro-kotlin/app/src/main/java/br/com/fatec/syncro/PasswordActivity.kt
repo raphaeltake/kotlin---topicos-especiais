@@ -1,5 +1,6 @@
 package br.com.fatec.syncro
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
@@ -43,10 +44,18 @@ class PasswordActivity : AppCompatActivity() {
 
         loginButton.setOnClickListener {
             val password = passwordInput.text?.toString().orEmpty()
-            passwordInputLayout.error = if (password.isEmpty()) {
+            passwordInputLayout.error = if (password.isBlank()) {
                 getString(R.string.password_required_error)
             } else {
                 null
+            }
+
+            if (passwordInputLayout.error == null) {
+                startActivity(
+                    Intent(this, TeamsActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                )
             }
         }
 

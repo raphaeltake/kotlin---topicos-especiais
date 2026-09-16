@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".InviteTeamActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TaskDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TeamsActivity"
+            android:exported="false" />
+        <activity
             android:name=".PasswordActivity"
             android:exported="false" />
         <activity
