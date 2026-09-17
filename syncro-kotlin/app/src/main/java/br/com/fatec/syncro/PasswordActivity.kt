@@ -12,8 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
+import br.com.fatec.syncro.ui.SyncroTextInput
 
 class PasswordActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,8 +33,8 @@ class PasswordActivity : AppCompatActivity() {
             finish()
         }
 
-        val passwordInput = findViewById<TextInputEditText>(R.id.passwordInput)
-        val passwordInputLayout = findViewById<TextInputLayout>(R.id.passwordInputLayout)
+        val passwordInputLayout = findViewById<SyncroTextInput>(R.id.passwordInputLayout)
+        val passwordInput = passwordInputLayout.input
         val loginButton = findViewById<Button>(R.id.passwordLoginButton)
 
         passwordInput.doAfterTextChanged {

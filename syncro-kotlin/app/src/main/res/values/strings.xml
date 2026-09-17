@@ -5,9 +5,17 @@
     <string name="invite_title">Convide pessoas\npara sua equipe</string>
     <string name="team_code_label">Código da equipe:</string>
     <string name="email_label">E-mail:</string>
+    <string name="email_input_label">E-mail</string>
     <string name="email_hint">nome@email.com</string>
     <string name="email_list_label">Lista de e-mails:</string>
     <string name="invite_button">Convidar</string>
+    <string name="add_email">Adicionar e-mail</string>
+    <string name="copy_team_code">Copiar código da equipe</string>
+    <string name="team_code_copied">Código da equipe copiado.</string>
+    <string name="invite_email_required_error">Informe um e-mail.</string>
+    <string name="invite_email_invalid_error">Informe um e-mail válido.</string>
+    <string name="invite_email_duplicate_error">Este e-mail já foi adicionado.</string>
+    <string name="remove_email">Remover %1$s</string>
     <string name="login">Entrar</string>
     <string name="email_required_error">Informe seu e-mail.</string>
     <string name="email_invalid_error">Informe um e-mail válido.</string>
@@ -16,4 +24,16 @@
     <string name="password_hint">Senha</string>
     <string name="password_required_error">Informe sua senha.</string>
     <string name="toggle_password_visibility">Mostrar ou ocultar senha</string>
+    <string name="name_label">Nome:</string>
+    <string name="confirm_password_label">Confirmar senha:</string>
+    <string name="register">Cadastrar</string>
+    <string name="name_required_error">Informe seu nome.</string>
+    <string name="confirm_password_required_error">Confirme sua senha.</string>
+    <string name="passwords_do_not_match_error">As senhas não coincidem.</string>
+    <string name="profile">Perfil</string>
+    <string name="logout">Sair</string>
+    <string name="create_team_title">Criar equipe</string>
+    <string name="team_name_label">Nome da equipe:</string>
+    <string name="team_name_required_error">Informe o nome da equipe.</string>
+    <string name="create_team_button">Criar equipe</string>
 </resources>

@@ -12,7 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".CadastroActivity"
+            android:exported="false" />
+        <activity
             android:name=".InviteTeamActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CreateTeamActivity"
             android:exported="false" />
         <activity
             android:name=".TaskDetailsActivity"

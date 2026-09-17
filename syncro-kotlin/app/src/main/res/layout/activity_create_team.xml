@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/createTeamRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_light"
+    tools:context=".CreateTeamActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/createTeamHeader"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/top_bar_height"
+        android:background="@color/white"
+        android:paddingStart="@dimen/top_bar_horizontal_padding"
+        android:paddingEnd="@dimen/top_bar_horizontal_padding"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="@dimen/top_bar_icon_touch_size"
+            android:layout_height="@dimen/top_bar_icon_touch_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
+            android:padding="@dimen/top_bar_icon_padding"
+            android:src="@drawable/ic_arrow_back"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#10162F" />
+
+        <ImageButton
+            android:id="@+id/btnNotifications"
+            android:layout_width="@dimen/top_bar_icon_touch_size"
+            android:layout_height="@dimen/top_bar_icon_touch_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/notifications"
+            android:padding="@dimen/top_bar_icon_padding"
+            android:src="@drawable/ic_notifications"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#10162F" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/headerDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#E6E9F0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/createTeamHeader" />
+
+    <TextView
+        android:id="@+id/tvCreateTeamTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="@string/create_team_title"
+        android:textColor="#1E293B"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerDivider" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/createTeamCard"
+        android:layout_width="294dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerDivider"
+        app:layout_constraintVertical_bias="0.42">
+
+        <br.com.fatec.syncro.ui.SyncroTextInput
+            android:id="@+id/teamNameInputLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:autofillHints="name"
+            android:hint="@string/team_name_label"
+            android:imeOptions="actionDone"
+            android:inputType="textCapSentences"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCreateTeam"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginTop="28dp"
+            android:minWidth="180dp"
+            android:text="@string/create_team_button"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:backgroundTint="@color/blue"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_person_add"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp"
+            app:iconTint="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/teamNameInputLayout"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -21,7 +21,7 @@ class TeamsActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.btnCreateTeam).setOnClickListener {
-            startActivity(Intent(this, InviteTeamActivity::class.java))
+            startActivity(Intent(this, CreateTeamActivity::class.java))
         }
 
         findViewById<View>(R.id.btnJoinTeam).setOnClickListener {

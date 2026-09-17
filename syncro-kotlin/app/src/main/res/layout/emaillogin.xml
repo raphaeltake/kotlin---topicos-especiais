@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/auth_logo_width"
+        android:layout_height="@dimen/auth_logo_height"
         android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,31 +31,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.577" />
 
-    <com.google.android.material.textfield.TextInputLayout
+    <br.com.fatec.syncro.ui.SyncroTextInput
         android:id="@+id/emailInputLayout"
         android:layout_width="294dp"
         android:layout_height="wrap_content"
-        app:boxStrokeColor="@color/gray"
-        app:hintTextColor="@color/gray"
+        android:autofillHints="emailAddress"
+        android:hint="@string/email_input_label"
+        android:imeOptions="actionDone"
+        android:inputType="textEmailAddress"
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.504"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView2"
-        app:layout_constraintVertical_bias="0.565">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/emailInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/blue"
-            android:hint="E-mail"
-            android:imeOptions="actionDone"
-            android:inputType="textEmailAddress"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:textColorLink="@color/blue" />
-    </com.google.android.material.textfield.TextInputLayout>
+        app:layout_constraintVertical_bias="0.565" />
 
     <TextView
         android:id="@+id/textView"

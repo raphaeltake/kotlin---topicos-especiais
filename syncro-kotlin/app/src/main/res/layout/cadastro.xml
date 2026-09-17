@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/registerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CadastroActivity">
+
+    <ImageButton
+        android:id="@+id/registerBackButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/back"
+        android:padding="12dp"
+        android:src="@drawable/ic_arrow_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#1E293B" />
+
+    <ImageView
+        android:id="@+id/registerLogo"
+        android:layout_width="@dimen/auth_logo_width"
+        android:layout_height="@dimen/auth_logo_height"
+        android:layout_marginTop="100dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/logo" />
+
+    <LinearLayout
+        android:id="@+id/registerForm"
+        android:layout_width="294dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.58">
+
+        <br.com.fatec.syncro.ui.SyncroTextInput
+            android:id="@+id/nameInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="name"
+            android:hint="@string/name_label"
+            android:imeOptions="actionNext"
+            android:inputType="textPersonName|textCapWords" />
+
+        <br.com.fatec.syncro.ui.SyncroTextInput
+            android:id="@+id/registerEmailInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:autofillHints="emailAddress"
+            android:hint="@string/email_label"
+            android:imeOptions="actionNext"
+            android:inputType="textEmailAddress" />
+
+        <br.com.fatec.syncro.ui.SyncroTextInput
+            android:id="@+id/registerPasswordInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:autofillHints="newPassword"
+            android:hint="@string/password_label"
+            android:imeOptions="actionNext"
+            android:inputType="textPassword"
+            app:endIconContentDescription="@string/toggle_password_visibility"
+            app:endIconMode="password_toggle" />
+
+        <br.com.fatec.syncro.ui.SyncroTextInput
+            android:id="@+id/confirmPasswordInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:autofillHints="newPassword"
+            android:hint="@string/confirm_password_label"
+            android:imeOptions="actionDone"
+            android:inputType="textPassword"
+            app:endIconContentDescription="@string/toggle_password_visibility"
+            app:endIconMode="password_toggle" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/registerButton"
+        android:layout_width="294dp"
+        android:layout_height="49dp"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@color/blue"
+        android:text="@string/register"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/registerForm" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,13 +6,13 @@ import android.util.Patterns
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
+import br.com.fatec.syncro.ui.SyncroTextInput
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,9 +25,14 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val emailInput = findViewById<TextInputEditText>(R.id.emailInput)
-        val emailInputLayout = findViewById<TextInputLayout>(R.id.emailInputLayout)
+        val emailInputLayout = findViewById<SyncroTextInput>(R.id.emailInputLayout)
+        val emailInput = emailInputLayout.input
         val loginButton = findViewById<Button>(R.id.button)
+        val createAccountButton = findViewById<TextView>(R.id.textView)
+
+        createAccountButton.setOnClickListener {
+            startActivity(Intent(this, CadastroActivity::class.java))
+        }
 
         fun continueToPassword() {
             val email = emailInput.text?.toString()?.trim().orEmpty()

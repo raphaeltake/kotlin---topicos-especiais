@@ -62,7 +62,7 @@
             android:layout_marginStart="14dp"
             android:contentDescription="Novas tarefas"
             android:src="@drawable/ic_team_tasks"
-            app:tint="#5714F5" />
+            app:tint="@color/blue" />
 
         <TextView
             android:id="@+id/tvNewTaskCount"
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:text="5 novas tarefas"
-            android:textColor="#5714F5"
+            android:textColor="@color/blue"
             android:textSize="12sp"
             android:textStyle="bold" />
 
