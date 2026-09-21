@@ -68,12 +68,16 @@
 
                 <TextView
                     android:id="@+id/tvTaskTitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
                     android:text="Título tarefa"
                     android:textColor="@color/black"
                     android:textSize="24sp"
                     android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/dateLayout"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -81,7 +85,7 @@
                     android:id="@+id/tvStatusBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
+                    android:layout_marginTop="12dp"
                     android:background="@drawable/bg_badge"
                     android:backgroundTint="@color/status_green_bg"
                     android:paddingHorizontal="12dp"
@@ -90,18 +94,30 @@
                     android:textColor="@color/status_green"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvTaskTitle"
-                    app:layout_constraintStart_toEndOf="@+id/tvTaskTitle"
-                    app:layout_constraintTop_toTopOf="@+id/tvTaskTitle" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle" />
+
+                <ImageButton
+                    android:id="@+id/btnEditTask"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Editar tarefa"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_edit"
+                    app:layout_constraintBottom_toBottomOf="@id/tvStatusBadge"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/tvStatusBadge"
+                    app:tint="@color/blue" />
 
                 <LinearLayout
                     android:id="@+id/dateLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvTaskTitle"
+                    app:layout_constraintBottom_toBottomOf="@id/tvTaskTitle"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvTaskTitle">
+                    app:layout_constraintTop_toTopOf="@id/tvTaskTitle">
 
                     <ImageView
                         android:layout_width="16dp"
@@ -110,6 +126,7 @@
                         app:tint="@color/black" />
 
                     <TextView
+                        android:id="@+id/tvDueDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
@@ -125,7 +142,7 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="16dp"
                     android:background="@color/light_gray"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle" />
+                    app:layout_constraintTop_toBottomOf="@+id/tvStatusBadge" />
 
                 <TextView
                     android:id="@+id/tvResponsibles"
@@ -138,19 +155,8 @@
                     android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@+id/btnEditResponsibles"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/divider" />
-
-                <ImageView
-                    android:id="@+id/btnEditResponsibles"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_edit"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvResponsibles"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvResponsibles"
-                    app:tint="@color/blue" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -172,6 +178,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -200,6 +207,7 @@
                     android:textStyle="bold" />
 
                 <LinearLayout
+                    android:id="@+id/btnComment"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="12dp"
@@ -288,6 +296,7 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
+            android:id="@+id/btnTaskAction"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:background="@drawable/bg_button_blue"
@@ -303,12 +312,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Iniciar tarefa"
+                android:id="@+id/tvTaskActionLabel"
+                android:text="@string/screen_start_task"
                 android:textColor="@color/white"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/btnDeleteTask"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="12dp"

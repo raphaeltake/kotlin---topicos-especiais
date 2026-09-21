@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Referência: 7 - Confirmação convite enviado com sucesso.png. Paleta e componentes dos layouts existentes. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_light">
+    <include
+        layout="@layout/include_screen_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="ifContentScrolls">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tvSuccess"
+                style="@style/Screen.Title"
+                android:text="@string/screen_invite_success"
+                android:gravity="center"
+                android:layout_marginVertical="32dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnContinue"
+                style="@style/Screen.Button.Primary"
+                android:text="@string/screen_continue" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

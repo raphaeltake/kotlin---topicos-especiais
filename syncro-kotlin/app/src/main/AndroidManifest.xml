@@ -12,6 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".WorkspaceActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".CadastroActivity"
             android:exported="false" />
         <activity

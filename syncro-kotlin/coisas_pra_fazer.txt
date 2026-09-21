@@ -1,0 +1,10 @@
+Não permita que o usuário coloque uma data menor a data presente.
+Nos comentários da tarefa, permita que o usuário posso ver o histórico do comentário clicando em qualquer parte do comentário.
+No histórico de comentário, adicione um card nos comentários e a cada alteração nos comentário deverá ter uma nova seta.
+Quando houver uma nova notificação, adicione o icone de sino com uma bolinha.
+Na tela de equipes, permita no máximo 5 linhas na descrição, caso passe disso adicione "..." e caso o usuário clique na descrição, exiba um modal com a descrição completa.
+Na tela de histórico de tarefas, coloque a label "Histórico de tarefas" ao lado do botão de voltar.
+Crie uma tela para gerenciar perfil, podendo mudar as informações cadastrais do usuário.
+Permita criar equipes sem nenhum e-mail convidado.
+Faça a tarefa finalizada ter a mesma aparencia da tarefa em andamento.
+Coloque um card nos membros na tela de gerenciar membros.

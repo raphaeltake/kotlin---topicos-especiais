@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Referência: 14 - Descrição tarefa administrador-1.png. Paleta e componentes dos layouts existentes. -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/bg_light"
+    android:fillViewport="false"
+    android:clipToPadding="false"
+    android:overScrollMode="ifContentScrolls">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+        <TextView
+            android:id="@+id/tvTitle"
+            style="@style/Screen.Title"
+            android:text="@string/screen_confirm_delete_task"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                style="@style/Screen.Button.Outline"
+                android:text="@string/screen_cancel" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmDeleteTask"
+                style="@style/Screen.Button.Danger"
+                android:text="@string/screen_action_btnconfirmdeletetask"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

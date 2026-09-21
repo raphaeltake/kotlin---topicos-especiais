@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Referência: barra superior de task_details.xml. Paleta e componentes dos layouts existentes. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/top_bar_height"
+    android:background="@color/white"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/top_bar_horizontal_padding">
+    <ImageButton
+        android:id="@+id/btnBack"
+        style="@style/Screen.Icon"
+        android:src="@drawable/ic_arrow_back"
+        android:contentDescription="@string/screen_back"
+        android:layout_width="@dimen/top_bar_icon_touch_size"
+        android:layout_height="@dimen/top_bar_icon_touch_size"
+        android:padding="@dimen/top_bar_icon_padding"
+        app:tint="@color/black" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" />
+
+    <ImageButton
+        android:id="@+id/btnNotifications"
+        style="@style/Screen.Icon"
+        android:src="@drawable/ic_notifications"
+        android:contentDescription="@string/screen_notifications"
+        android:layout_width="@dimen/top_bar_icon_touch_size"
+        android:layout_height="@dimen/top_bar_icon_touch_size"
+        android:padding="@dimen/top_bar_icon_padding"
+        app:tint="@color/black" />
+</LinearLayout>

@@ -68,21 +68,29 @@
 
                 <TextView
                     android:id="@+id/tvTeamName"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="Nome equipe"
                     android:textColor="@color/black"
                     android:textSize="22sp"
                     android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/btnEditTeam"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:id="@+id/btnEditTeam"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Editar equipe"
+                    android:padding="10dp"
                     android:src="@drawable/ic_edit"
                     app:layout_constraintBottom_toBottomOf="@+id/tvTeamName"
+                    app:layout_constraintEnd_toStartOf="@id/tvMemberCountBadge"
                     app:layout_constraintStart_toEndOf="@+id/tvTeamName"
                     app:layout_constraintTop_toTopOf="@+id/tvTeamName"
                     app:tint="@color/blue" />
@@ -103,12 +111,13 @@
 
                 <TextView
                     android:id="@+id/tvTeamDescription"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Descrição da equipe"
                     android:textColor="@color/gray"
                     android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvTeamName" />
 
@@ -124,7 +133,7 @@
                 android:padding="4dp">
 
                 <LinearLayout
-                    android:id="@+id/membersTab"
+                    android:id="@+id/tasksTab"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -133,6 +142,7 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/tvTasksTabLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Tarefas"
@@ -140,13 +150,13 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvTasksTabCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_card"
-                        android:backgroundTint="@color/status_blue_bg"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="2dp"
+                        android:gravity="center"
+                        android:minWidth="24dp"
+                        android:minHeight="24dp"
                         android:text="3"
                         android:textColor="@color/blue"
                         android:textSize="12sp"
@@ -154,6 +164,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/membersTab"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -161,15 +172,20 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/tvMembersTabLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Membros"
                         android:textColor="@color/black" />
 
                     <TextView
+                        android:id="@+id/tvMembersTabCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
+                        android:gravity="center"
+                        android:minWidth="24dp"
+                        android:minHeight="24dp"
                         android:text="10"
                         android:textColor="@color/black"
                         android:textSize="12sp"
@@ -184,6 +200,7 @@
                 android:layout_marginTop="24dp">
 
                 <TextView
+                    android:id="@+id/tvTeamSectionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tarefas"
@@ -195,6 +212,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
+                    android:id="@+id/btnTaskHistory"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_history"
@@ -453,6 +471,47 @@
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:id="@+id/membersPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/btnManageMembers"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_button_blue"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="Gerenciar membros"
+                        android:src="@drawable/ic_team_members"
+                        app:tint="@color/white" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Gerenciar membros"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/membersList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

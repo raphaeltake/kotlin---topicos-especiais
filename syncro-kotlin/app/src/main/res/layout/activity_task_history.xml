@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Referência: 26 - histórico de tarefas.png. Paleta e componentes dos layouts existentes. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_light">
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/top_bar_height"
+        android:background="@color/white"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/top_bar_horizontal_padding">
+        <ImageButton
+            android:id="@+id/btnBack"
+            style="@style/Screen.Icon"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="@string/screen_back"
+            android:layout_width="@dimen/top_bar_icon_touch_size"
+            android:layout_height="@dimen/top_bar_icon_touch_size"
+            android:padding="@dimen/top_bar_icon_padding"
+            app:tint="@color/black" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="ifContentScrolls">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:id="@+id/tvTasksTitle"
+                        style="@style/Screen.Title"
+                        android:text="@string/screen_task_history"
+                        android:layout_width="0dp"
+                        android:layout_weight="1" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="0dp"
+                    android:id="@+id/taskItem0"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:id="@+id/tvTaskTitle0"
+                        style="@style/Screen.Section"
+                        android:text="@string/screen_task_title" />
+
+                    <TextView
+                        android:id="@+id/tvTaskDate0"
+                        style="@style/Screen.Body"
+                        android:text="@string/screen_sample_date"
+                        android:layout_marginTop="12dp"
+                        app:drawableStartCompat="@drawable/ic_calendar"
+                        android:drawablePadding="8dp"
+                        app:drawableTint="@color/black" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/light_gray"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="0dp"
+                    android:id="@+id/taskItem1"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:id="@+id/tvTaskTitle1"
+                        style="@style/Screen.Section"
+                        android:text="@string/screen_task_title" />
+
+                    <TextView
+                        android:id="@+id/tvTaskResponsibles1"
+                        style="@style/Screen.Body"
+                        android:text="@string/screen_responsibles_sample"
+                        android:layout_marginTop="8dp" />
+
+                    <TextView
+                        android:id="@+id/tvTaskDate1"
+                        style="@style/Screen.Body"
+                        android:text="@string/screen_sample_date"
+                        android:layout_marginTop="12dp"
+                        app:drawableStartCompat="@drawable/ic_calendar"
+                        android:drawablePadding="8dp"
+                        app:drawableTint="@color/black" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/light_gray"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="0dp"
+                    android:id="@+id/taskItem2"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:paddingVertical="8dp">
+                    <TextView
+                        android:id="@+id/tvTaskTitle2"
+                        style="@style/Screen.Section"
+                        android:text="@string/screen_task_title" />
+
+                    <TextView
+                        android:id="@+id/tvTaskDate2"
+                        style="@style/Screen.Body"
+                        android:text="@string/screen_sample_date"
+                        android:layout_marginTop="12dp"
+                        app:drawableStartCompat="@drawable/ic_calendar"
+                        android:drawablePadding="8dp"
+                        app:drawableTint="@color/black" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/light_gray"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

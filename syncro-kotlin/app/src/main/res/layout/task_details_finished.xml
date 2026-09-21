@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Referência: 27 - Descrição tarefa finalizada.png. Paleta e componentes dos layouts existentes. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_light">
+    <include
+        layout="@layout/include_screen_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="ifContentScrolls">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:id="@+id/tvTaskTitle"
+                        style="@style/Screen.Title"
+                        android:text="@string/screen_task_title"
+                        android:layout_width="0dp"
+                        android:layout_weight="1" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvStatusBadge"
+                    style="@style/Screen.Badge"
+                    android:text="@string/screen_finished"
+                    android:textColor="@color/blue"
+                    android:backgroundTint="@color/status_blue_bg"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:id="@+id/tvDueDate"
+                    style="@style/Screen.Label"
+                    android:text="@string/screen_sample_date"
+                    android:layout_marginTop="16dp"
+                    app:drawableStartCompat="@drawable/ic_calendar"
+                    android:drawablePadding="8dp"
+                    app:drawableTint="@color/black" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="16dp"
+                    android:background="@color/light_gray" />
+
+                <TextView
+                    android:id="@+id/tvResponsibles"
+                    style="@style/Screen.Body"
+                    android:text="@string/screen_responsibles_sample" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:id="@+id/tvDescriptionTitle"
+                    style="@style/Screen.Section"
+                    android:text="@string/screen_description" />
+
+                <TextView
+                    android:id="@+id/tvDescription"
+                    style="@style/Screen.Body"
+                    android:text="@string/screen_description_sample"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:id="@+id/tvCommentsTitle"
+                    style="@style/Screen.Section"
+                    android:text="@string/screen_comments" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="0dp"
+                    android:layout_marginTop="12dp"
+                    android:paddingVertical="8dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tvCommenterName1"
+                            style="@style/Screen.Label"
+                            android:text="@string/screen_member_name"
+                            android:layout_width="0dp"
+                            android:layout_weight="1" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCommentHistory"
+                        style="@style/Screen.Button.Text"
+                        android:text="@string/screen_edited"
+                        android:layout_width="wrap_content"
+                        android:layout_gravity="end" />
+
+                    <TextView
+                        android:id="@+id/tvCommentText1"
+                        style="@style/Screen.Body"
+                        android:text="@string/screen_comment_short"
+                        android:layout_marginTop="8dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/light_gray"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="0dp"
+                    android:layout_marginTop="12dp"
+                    android:paddingVertical="8dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tvCommenterName2"
+                            style="@style/Screen.Label"
+                            android:text="@string/screen_member_name"
+                            android:layout_width="0dp"
+                            android:layout_weight="1" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvCommentText2"
+                        style="@style/Screen.Body"
+                        android:text="@string/screen_comment_long"
+                        android:layout_marginTop="8dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/light_gray"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

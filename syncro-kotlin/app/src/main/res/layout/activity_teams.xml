@@ -12,6 +12,7 @@
         android:id="@+id/header"
         android:layout_width="0dp"
         android:layout_height="@dimen/top_bar_height"
+        android:layout_marginTop="8dp"
         android:background="@color/white"
         android:paddingStart="@dimen/top_bar_horizontal_padding"
         android:paddingEnd="@dimen/top_bar_horizontal_padding"

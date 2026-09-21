@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:paddingVertical="16dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView style="@style/Screen.Label" android:layout_width="0dp"
+            android:layout_weight="1" android:text="@string/screen_member_name" />
+        <ImageButton android:id="@+id/btnEditComment1" style="@style/Screen.Icon"
+            android:src="@drawable/ic_edit" android:contentDescription="@string/screen_edit_comment" />
+    </LinearLayout>
+    <TextView android:id="@+id/btnCommentHistory" style="@style/Screen.Body"
+        android:text="@string/screen_edited" android:textColor="@color/blue"
+        android:minHeight="48dp" android:gravity="center_vertical" />
+    <TextView android:id="@+id/tvCommentText1" style="@style/Screen.Body" />
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:layout_marginTop="16dp" android:background="@color/light_gray" />
+</LinearLayout>

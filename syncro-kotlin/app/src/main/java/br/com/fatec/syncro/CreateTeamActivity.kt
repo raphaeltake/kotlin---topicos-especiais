@@ -17,6 +17,7 @@ class CreateTeamActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_create_team)
+        Navigation.toolbar(this)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.createTeamRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -45,7 +46,9 @@ class CreateTeamActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            startActivity(Intent(this, InviteTeamActivity::class.java))
+            val team = Workspace.Team(name = teamName, tasks = mutableListOf(), members = mutableListOf(Workspace.Member("Você", "Criador(a)")))
+            Workspace.teams.add(team)
+            startActivity(Intent(this, InviteTeamActivity::class.java).putExtra(Navigation.TEAM, team.id))
             finish()
         }
 

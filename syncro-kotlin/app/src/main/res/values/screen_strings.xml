@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_overdue">Atrasada</string>
+    <string name="screen_back">Voltar</string>
+
+    <string name="screen_notifications">Notificações</string>
+
+    <string name="screen_invite_success">Convite enviado com sucesso!</string>
+
+    <string name="screen_continue">Continuar</string>
+
+    <string name="screen_join_team">Entrar em uma equipe</string>
+
+    <string name="screen_team_code">Código da equipe</string>
+
+    <string name="screen_join">Entrar</string>
+
+    <string name="screen_notification_0">Nova tarefa: nome equipe</string>
+
+    <string name="screen_notification_1">Nome membro entrou na equipe nome equipe</string>
+
+    <string name="screen_notification_2">Nome membro pediu para entrar: nome equipe</string>
+
+    <string name="screen_notification_3">Seu convite foi aceito na equipe: nome equipe</string>
+
+    <string name="screen_notification_4">Você foi convidado(a) para entrar em uma equipe: nome equipe</string>
+
+    <string name="screen_accept_invite">Aceitar convite</string>
+
+    <string name="screen_decline_invite">Recusar convite</string>
+
+    <string name="screen_task_title">Título tarefa</string>
+
+    <string name="screen_edit_task">Editar tarefa</string>
+
+    <string name="screen_in_progress">Em andamento</string>
+
+    <string name="screen_sample_date">09/03/2026</string>
+
+    <string name="screen_responsibles_sample">nome responsável 1 | nome responsável 2</string>
+
+    <string name="screen_description">Descrição:</string>
+
+    <string name="screen_description_sample">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
+
+    <string name="screen_finish_task">Finalizar tarefa</string>
+
+    <string name="screen_delete_task">Apagar tarefa</string>
+
+    <string name="screen_comments">Comentários</string>
+
+    <string name="screen_comment">Comentar</string>
+
+    <string name="screen_member_name">Nome integrante</string>
+
+    <string name="screen_edit_comment">Editar comentário</string>
+
+    <string name="screen_edited">editado</string>
+
+    <string name="screen_comment_short">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</string>
+
+    <string name="screen_comment_long">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
+
+    <string name="screen_pending">Pendente</string>
+
+    <string name="screen_start_task">Iniciar tarefa</string>
+
+    <string name="screen_finished">Finalizada</string>
+
+    <string name="screen_confirm_delete_task">Deseja apagar essa tarefa?</string>
+
+    <string name="screen_cancel">Cancelar</string>
+
+    <string name="screen_action_btnconfirmdeletetask">Apagar</string>
+
+    <string name="screen_confirm_remove_comment">Deseja remover esse comentário?</string>
+
+    <string name="screen_action_btnconfirmremovecomment">Remover</string>
+
+    <string name="screen_confirm_delete_comment">Deseja excluir esse comentário?</string>
+
+    <string name="screen_action_btnconfirmdeletecomment">Excluir</string>
+
+    <string name="screen_confirm_remove_member">Deseja remover esse membro?</string>
+
+    <string name="screen_action_btnconfirmremovemember">Remover</string>
+
+    <string name="screen_member_removed">Membro removido com sucesso!</string>
+
+    <string name="screen_ok">OK</string>
+
+    <string name="screen_confirm_delete_team">Deseja apagar equipe?</string>
+
+    <string name="screen_action_btnconfirmdeleteteam">Apagar</string>
+
+    <string name="screen_confirm_leave_team">Deseja sair da equipe?</string>
+
+    <string name="screen_action_btnconfirmleaveteam">Sair</string>
+
+    <string name="screen_confirm_logout">Deseja sair?</string>
+
+    <string name="screen_action_btnconfirmlogout">Sair</string>
+
+    <string name="screen_add_task">Adicionar tarefa</string>
+
+    <string name="screen_task_title_label">Título tarefa *</string>
+
+    <string name="screen_responsibles_label">Responsáveis</string>
+
+    <string name="screen_due_date_label">Data limite</string>
+
+    <string name="screen_description_label">Descrição *</string>
+
+    <string name="screen_action_btnaddtask">Adicionar</string>
+
+    <string name="screen_sample_task_title_label">Título tarefa</string>
+
+    <string name="screen_sample_responsibles_label">Responsáveis</string>
+
+    <string name="screen_sample_due_date_label">Data limite</string>
+
+    <string name="screen_sample_description_label">Descrição</string>
+
+    <string name="screen_action_btnsavetask">Salvar</string>
+
+    <string name="screen_edit_team">Editar equipe</string>
+
+    <string name="screen_sample_team_name">Nome da equipe</string>
+
+    <string name="screen_team_name">Nome da equipe</string>
+
+    <string name="screen_sample_team_description">Descrição da equipe</string>
+
+    <string name="screen_team_description">Descrição da equipe</string>
+
+    <string name="screen_action_btnsaveteam">Salvar</string>
+
+    <string name="screen_new_comment">Comentário:</string>
+
+    <string name="screen_comment_label">Comentário</string>
+
+    <string name="screen_action_btnsubmitcomment">Comentar</string>
+
+    <string name="screen_delete_comment">Excluir comentário</string>
+
+    <string name="screen_sample_comment_label">Comentário</string>
+
+    <string name="screen_action_btnsavecomment">Comentar</string>
+
+    <string name="screen_comment_history">Histórico comentário</string>
+
+    <string name="screen_history_direction">Versão anterior para versão atual</string>
+
+    <string name="screen_members">Membros</string>
+
+    <string name="screen_add_member">Adicionar membro</string>
+
+    <string name="screen_remove_member">Remover membro</string>
+
+    <string name="screen_role_0">Papel: Criador(a)</string>
+
+    <string name="screen_role_prompt">Papel do membro</string>
+
+    <string name="screen_delete_team">Excluir equipe</string>
+
+    <string name="screen_team_name_sample">Nome equipe</string>
+
+    <string name="screen_members_count">membros: 10</string>
+
+    <string name="screen_tasks">Tarefas</string>
+
+    <string name="screen_task_history">Histórico de tarefas</string>
+
+    <string name="screen_role_1">Papel: Administrador(a)</string>
+
+    <string name="screen_role_2">Papel: Membro</string>
+
+    <string name="screen_leave_team">Sair da equipe</string>
+
+    <string-array
+        name="screen_admin_roles">
+        <item>Administrador(a)</item>
+
+        <item>Membro</item>
+    </string-array>
+
+    <string-array
+        name="screen_member_roles">
+        <item>Membro</item>
+
+        <item>Administrador(a)</item>
+    </string-array>
+</resources>

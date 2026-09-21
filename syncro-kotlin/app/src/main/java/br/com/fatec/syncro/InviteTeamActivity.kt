@@ -33,6 +33,9 @@ class InviteTeamActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_invite_team)
+        val currentTeam = Workspace.team(intent.getStringExtra(Navigation.TEAM))
+        if (currentTeam == null) { Navigation.home(this); return }
+        Navigation.toolbar(this, currentTeam.id)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.inviteTeamRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -45,6 +48,7 @@ class InviteTeamActivity : AppCompatActivity() {
         }
 
         val teamCode = findViewById<TextView>(R.id.tvTeamCode)
+        teamCode.text = currentTeam.code
         findViewById<ImageButton>(R.id.btnCopyTeamCode).setOnClickListener {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(
@@ -117,11 +121,12 @@ class InviteTeamActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.btnInvite).setOnClickListener {
-            startActivity(
-                Intent(this, TeamDetailsActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                }
-            )
+            if (invitedEmails.isEmpty()) {
+                emailInputLayout.error = "Adicione ao menos um e-mail à lista"
+                emailInput.requestFocus()
+                return@setOnClickListener
+            }
+            Navigation.open(this, "success", currentTeam.id)
             finish()
         }
     }

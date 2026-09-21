@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Referência: 10 - Notificações.png. Paleta e componentes dos layouts existentes. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_light">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/top_bar_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/white"
+        android:paddingHorizontal="@dimen/top_bar_horizontal_padding">
+        <ImageButton
+            android:id="@+id/btnBack"
+            style="@style/Screen.Icon"
+            android:layout_width="@dimen/top_bar_icon_touch_size"
+            android:layout_height="@dimen/top_bar_icon_touch_size"
+            android:padding="@dimen/top_bar_icon_padding"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="@string/screen_back"
+            app:tint="@color/black" />
+        <TextView
+            android:id="@+id/tvTitle"
+            style="@style/Screen.Title"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="@string/screen_notifications" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="ifContentScrolls">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_card"
+                android:padding="20dp">
+                <TextView
+                    android:id="@+id/tvNotification1"
+                    style="@style/Screen.Label"
+                    android:text="@string/screen_notification_0" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_card"
+                android:padding="20dp">
+                <TextView
+                    android:id="@+id/tvNotification2"
+                    style="@style/Screen.Label"
+                    android:text="@string/screen_notification_1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_card"
+                android:padding="20dp">
+                <TextView
+                    android:id="@+id/tvNotification3"
+                    style="@style/Screen.Label"
+                    android:text="@string/screen_notification_2" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_card"
+                android:padding="20dp">
+                <TextView
+                    android:id="@+id/tvNotification4"
+                    style="@style/Screen.Label"
+                    android:text="@string/screen_notification_3" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_card"
+                android:padding="20dp">
+                <TextView
+                    android:id="@+id/tvNotification5"
+                    style="@style/Screen.Label"
+                    android:text="@string/screen_notification_4" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAcceptInvite"
+                        style="@style/Screen.Button.Primary"
+                        android:text="@string/screen_accept_invite" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDeclineInvite"
+                        style="@style/Screen.Button.Outline"
+                        android:text="@string/screen_decline_invite"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
