@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:background="@drawable/bg_card"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvManagedMemberName"
+            style="@style/Screen.Label"
+            android:layout_width="0dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/btnRemoveManagedMember"
+            style="@style/Screen.Icon"
+            android:contentDescription="@string/screen_remove_member"
+            android:src="@drawable/ic_delete" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvManagedMemberRole"
+        style="@style/Screen.Body"
+        android:layout_marginTop="8dp" />
+
+    <Spinner
+        android:id="@+id/spinnerManagedMemberRole"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_input_field"
+        android:contentDescription="@string/screen_role_prompt"
+        android:prompt="@string/screen_role_prompt" />
+</LinearLayout>

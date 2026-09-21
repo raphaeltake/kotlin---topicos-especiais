@@ -94,6 +94,9 @@ class CadastroActivity : AppCompatActivity() {
 
         registerButton.setOnClickListener {
             if (validateFields()) {
+                Workspace.profile.name = nameInput.text.toString().trim()
+                Workspace.profile.email = emailInput.text.toString().trim()
+                Workspace.profile.password = passwordInput.text.toString()
                 startActivity(
                     Intent(this, TeamsActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

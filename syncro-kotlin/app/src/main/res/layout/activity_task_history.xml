@@ -28,9 +28,12 @@
             android:padding="@dimen/top_bar_icon_padding"
             app:tint="@color/black" />
 
-        <Space
+        <TextView
+            android:id="@+id/tvTasksTitle"
+            style="@style/Screen.Section"
+            android:text="@string/screen_task_history"
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1" />
     </LinearLayout>
 
@@ -56,12 +59,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
-                    <TextView
-                        android:id="@+id/tvTasksTitle"
-                        style="@style/Screen.Title"
-                        android:text="@string/screen_task_history"
-                        android:layout_width="0dp"
-                        android:layout_weight="1" />
                 </LinearLayout>
 
                 <LinearLayout

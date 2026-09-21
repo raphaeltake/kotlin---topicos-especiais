@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:background="@drawable/bg_card" android:padding="16dp" android:orientation="vertical">
+    <TextView android:id="@+id/tvVersionLabel" style="@style/Screen.Label" />
+    <TextView android:id="@+id/tvVersionText" style="@style/Screen.Body"
+        android:layout_marginTop="8dp" />
+</LinearLayout>

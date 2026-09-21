@@ -13,6 +13,11 @@ import androidx.core.widget.doAfterTextChanged
 import br.com.fatec.syncro.ui.SyncroTextInput
 
 class CreateTeamActivity : AppCompatActivity() {
+    override fun onResume() {
+        super.onResume()
+        Navigation.toolbar(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -46,7 +51,7 @@ class CreateTeamActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val team = Workspace.Team(name = teamName, tasks = mutableListOf(), members = mutableListOf(Workspace.Member("Você", "Criador(a)")))
+            val team = Workspace.Team(name = teamName, tasks = mutableListOf(), members = mutableListOf(Workspace.Member(Workspace.profile.name, "Criador(a)")))
             Workspace.teams.add(team)
             startActivity(Intent(this, InviteTeamActivity::class.java).putExtra(Navigation.TEAM, team.id))
             finish()

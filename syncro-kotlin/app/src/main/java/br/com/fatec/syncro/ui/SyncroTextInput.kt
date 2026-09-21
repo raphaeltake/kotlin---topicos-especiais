@@ -43,15 +43,11 @@ class SyncroTextInput @JvmOverloads constructor(
 
         context.obtainStyledAttributes(
             attrs,
-            intArrayOf(
-                android.R.attr.inputType,
-                android.R.attr.imeOptions,
-                android.R.attr.autofillHints
-            )
+            R.styleable.SyncroTextInput
         ).apply {
-            input.inputType = getInt(0, InputType.TYPE_CLASS_TEXT)
-            input.imeOptions = getInt(1, EditorInfo.IME_ACTION_UNSPECIFIED)
-            getString(2)?.let { hints ->
+            input.inputType = getInt(R.styleable.SyncroTextInput_android_inputType, InputType.TYPE_CLASS_TEXT)
+            input.imeOptions = getInt(R.styleable.SyncroTextInput_android_imeOptions, EditorInfo.IME_ACTION_UNSPECIFIED)
+            getString(R.styleable.SyncroTextInput_android_autofillHints)?.let { hints ->
                 input.setAutofillHints(*hints.split(',').map(String::trim).toTypedArray())
             }
             recycle()

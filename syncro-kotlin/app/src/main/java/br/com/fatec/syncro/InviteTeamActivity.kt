@@ -121,14 +121,18 @@ class InviteTeamActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.btnInvite).setOnClickListener {
-            if (invitedEmails.isEmpty()) {
-                emailInputLayout.error = "Adicione ao menos um e-mail à lista"
-                emailInput.requestFocus()
-                return@setOnClickListener
+            if (!emailInput.text.isNullOrBlank()) {
+                addEmail()
+                if (emailInputLayout.error != null) return@setOnClickListener
             }
-            Navigation.open(this, "success", currentTeam.id)
+            Navigation.open(this, if (invitedEmails.isEmpty()) "team" else "success", currentTeam.id)
             finish()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Navigation.toolbar(this, intent.getStringExtra(Navigation.TEAM))
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -138,6 +142,8 @@ class InviteTeamActivity : AppCompatActivity() {
 
     private fun renderEmailList(container: LinearLayout) {
         container.removeAllViews()
+        findViewById<TextView>(R.id.tvInviteAction).text =
+            if (invitedEmails.isEmpty()) "Continuar sem convidar" else getString(R.string.invite_button)
 
         invitedEmails.forEach { email ->
             val row = LinearLayout(this).apply {

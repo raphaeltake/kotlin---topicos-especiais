@@ -24,7 +24,22 @@ object Navigation {
     fun toolbar(activity: AppCompatActivity, team: String? = null) {
         activity.findViewById<View>(R.id.btnBack)?.setOnClickListener { activity.finish() }
         listOf(R.id.btnNotifications, R.id.btnNotificationsTop).forEach { id ->
-            activity.findViewById<View>(id)?.setOnClickListener { open(activity, "notifications", team) }
+            activity.findViewById<android.widget.ImageButton>(id)?.apply {
+                imageTintList = null
+                setImageResource(if (Workspace.hasUnreadNotifications) R.drawable.ic_notifications_unread else R.drawable.ic_notifications)
+                contentDescription = if (Workspace.hasUnreadNotifications) "Notificações não lidas" else "Notificações"
+                setOnClickListener { open(activity, "notifications", team) }
+            }
+        }
+    }
+    fun teamDescription(activity: AppCompatActivity, label: android.widget.TextView, description: String) {
+        label.text = description
+        label.maxLines = 5
+        label.ellipsize = android.text.TextUtils.TruncateAt.END
+        label.isFocusable = true
+        label.setOnClickListener {
+            MaterialAlertDialogBuilder(activity).setTitle("Descrição da equipe")
+                .setMessage(description).setPositiveButton("Fechar", null).show()
         }
     }
     fun logout(activity: AppCompatActivity) {

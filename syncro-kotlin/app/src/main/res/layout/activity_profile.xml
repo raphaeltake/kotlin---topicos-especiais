@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg_light">
+    <include layout="@layout/include_screen_toolbar" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="24dp">
+            <TextView style="@style/Screen.Title" android:text="Gerenciar perfil"
+                android:layout_marginBottom="24dp" />
+            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profileNameInput"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Nome" android:inputType="textPersonName" android:autofillHints="personName" />
+            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profileEmailInput"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:hint="E-mail"
+                android:inputType="textEmailAddress" android:autofillHints="emailAddress" />
+            <TextView style="@style/Screen.Body" android:layout_marginTop="24dp"
+                android:text="Para alterar a senha, preencha os dois campos abaixo." />
+            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profilePasswordInput"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:hint="Nova senha (opcional)"
+                android:inputType="textPassword" android:autofillHints="newPassword"
+                app:endIconContentDescription="@string/toggle_password_visibility"
+                app:endIconMode="password_toggle" />
+            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profileConfirmPasswordInput"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:hint="Confirmar nova senha"
+                android:inputType="textPassword" android:autofillHints="newPassword"
+                app:endIconContentDescription="@string/toggle_password_visibility"
+                app:endIconMode="password_toggle" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveProfile"
+                style="@style/Screen.Button.Primary" android:text="Salvar alterações"
+                android:layout_marginTop="24dp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

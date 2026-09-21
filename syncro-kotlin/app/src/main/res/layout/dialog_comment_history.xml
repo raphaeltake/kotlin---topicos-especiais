@@ -1,68 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Referência: 25 - Histórico comentário.png. Paleta e componentes dos layouts existentes. -->
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/bg_light"
-    android:fillViewport="false"
-    android:clipToPadding="false"
-    android:overScrollMode="ifContentScrolls">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
-        <TextView
-            android:id="@+id/tvTitle"
-            style="@style/Screen.Title"
-            android:text="@string/screen_comment_history"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:background="@color/bg_light">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="24dp">
+        <TextView style="@style/Screen.Title" android:text="@string/screen_comment_history"
             android:layout_marginBottom="16dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
-            <TextView
-                android:id="@+id/tvPreviousComment"
-                style="@style/Screen.Body"
-                android:text="@string/screen_comment_short" />
-        </LinearLayout>
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_arrow_back"
-            android:rotation="270"
-            android:contentDescription="@string/screen_history_direction"
-            app:tint="@color/black" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:layout_marginTop="16dp"
-            android:paddingVertical="8dp">
-            <TextView
-                android:id="@+id/tvCurrentComment"
-                style="@style/Screen.Body"
-                android:text="@string/screen_comment_long" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:background="@color/light_gray"
-                android:importantForAccessibility="no" />
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCloseHistory"
-            style="@style/Screen.Button.Primary"
+        <LinearLayout android:id="@+id/commentHistoryVersions"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCloseHistory"
+            style="@style/Screen.Button.Primary" android:layout_marginTop="16dp"
             android:text="@string/screen_back" />
     </LinearLayout>
 </ScrollView>

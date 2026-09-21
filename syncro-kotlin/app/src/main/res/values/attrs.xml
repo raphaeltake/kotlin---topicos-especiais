@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="syncroTextInputStyle" format="reference" />
+    <declare-styleable name="SyncroTextInput">
+        <attr name="android:inputType" />
+        <attr name="android:imeOptions" />
+        <attr name="android:autofillHints" />
+    </declare-styleable>
 </resources>

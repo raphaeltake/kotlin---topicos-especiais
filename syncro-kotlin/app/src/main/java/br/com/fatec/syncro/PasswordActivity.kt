@@ -50,6 +50,8 @@ class PasswordActivity : AppCompatActivity() {
             }
 
             if (passwordInputLayout.error == null) {
+                Workspace.profile.email = email
+                Workspace.profile.password = password
                 startActivity(
                     Intent(this, TeamsActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
