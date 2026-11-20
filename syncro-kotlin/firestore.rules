@@ -2,6 +2,18 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function teamPath(teamId) {
+      return /databases/$(database)/documents/teams/$(teamId);
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
 
@@ -19,6 +31,184 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
 
       allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Uma equipe é um único documento:
+    //   memberIds     uids de todos os membros (o criador sempre incluído)
+    //   adminIds      uids dos administradores (o criador não entra aqui)
+    //   memberNames   { uid: nome exibido } para cada membro
+    //   invitedEmails e-mails convidados que ainda não responderam
+    // Cada operação do app altera só os campos que lhe dizem respeito, e as
+    // regras abaixo conferem o antes e o depois.
+    match /teams/{teamId} {
+      function isMember(team) {
+        return request.auth.uid in team.memberIds;
+      }
+
+      function isInvited(team) {
+        return myEmail() in team.invitedEmails;
+      }
+
+      function isCreator(team) {
+        return request.auth.uid == team.createdBy;
+      }
+
+      function isAdmin(team) {
+        return isCreator(team) || request.auth.uid in team.adminIds;
+      }
+
+      function changed() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      function namesDiff() {
+        return request.resource.data.memberNames.diff(resource.data.memberNames);
+      }
+
+      function me() {
+        return [request.auth.uid].toSet();
+      }
+
+      function validTeamName(name) {
+        return name is string && name == name.trim() && name.size() > 0 && name.size() <= 100;
+      }
+
+      function validMemberName(name) {
+        return name is string && name.size() > 0 && name.size() <= 100;
+      }
+
+      // Vale para qualquer estado salvo da equipe.
+      function validTeam(team) {
+        return team.keys().hasOnly([
+            'name', 'description', 'code', 'createdBy', 'memberIds', 'adminIds',
+            'memberNames', 'invitedEmails', 'createdAt', 'updatedAt'
+          ])
+          && team.keys().hasAll([
+            'name', 'description', 'code', 'createdBy', 'memberIds', 'adminIds',
+            'memberNames', 'invitedEmails', 'createdAt', 'updatedAt'
+          ])
+          && validTeamName(team.name)
+          && team.description is string && team.description.size() <= 1000
+          && team.code is string && team.code.matches('[A-Z0-9]{8}')
+          && team.memberIds is list && team.memberIds.size() <= 100
+          && team.memberIds.toSet().size() == team.memberIds.size()
+          && team.createdBy in team.memberIds
+          && team.adminIds is list
+          && team.adminIds.toSet().size() == team.adminIds.size()
+          && team.memberIds.hasAll(team.adminIds)
+          && !(team.createdBy in team.adminIds)
+          && team.memberNames is map
+          && team.memberNames.keys().toSet() == team.memberIds.toSet()
+          && team.invitedEmails is list && team.invitedEmails.size() <= 50;
+      }
+
+      function invitesWithoutMe() {
+        return request.resource.data.invitedEmails.toSet()
+          == resource.data.invitedEmails.toSet().difference([myEmail()].toSet());
+      }
+
+      // Administradores editam nome e descrição.
+      function editInfo() {
+        return isAdmin(resource.data)
+          && changed().hasOnly(['name', 'description', 'updatedAt'])
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      // Administradores convidam (ou cancelam convites) por e-mail.
+      function invite() {
+        return isAdmin(resource.data) && changed().hasOnly(['invitedEmails']);
+      }
+
+      // Administradores removem membros e mudam papéis. Ninguém entra por aqui,
+      // nenhum nome muda, e validTeam garante que o criador continua na equipe
+      // e fora de adminIds.
+      function manageMembers() {
+        return isAdmin(resource.data)
+          && changed().hasOnly(['memberIds', 'adminIds', 'memberNames'])
+          && resource.data.memberIds.toSet().hasAll(request.resource.data.memberIds)
+          && namesDiff().addedKeys().size() == 0
+          && namesDiff().changedKeys().size() == 0;
+      }
+
+      // Entrar como membro comum, por código ou aceitando um convite. O id da
+      // equipe só é obtido consultando teamCodes/{código} ou por convite, já que
+      // quem não é membro nem convidado não consegue ler nem listar equipes.
+      function join() {
+        return !isMember(resource.data)
+          && changed().hasOnly(['memberIds', 'memberNames', 'invitedEmails'])
+          && request.resource.data.memberIds.toSet() == resource.data.memberIds.toSet().union(me())
+          && namesDiff().affectedKeys() == me()
+          && validMemberName(request.resource.data.memberNames[request.auth.uid])
+          && invitesWithoutMe();
+      }
+
+      // Membros saem da equipe. O criador não pode sair, só apagar a equipe.
+      function leave() {
+        return isMember(resource.data)
+          && !isCreator(resource.data)
+          && changed().hasOnly(['memberIds', 'adminIds', 'memberNames'])
+          && request.resource.data.memberIds.toSet() == resource.data.memberIds.toSet().difference(me())
+          && request.resource.data.adminIds.toSet() == resource.data.adminIds.toSet().difference(me())
+          && namesDiff().affectedKeys() == me();
+      }
+
+      // Convidado recusa o próprio convite.
+      function declineInvite() {
+        return isInvited(resource.data)
+          && changed().hasOnly(['invitedEmails'])
+          && invitesWithoutMe();
+      }
+
+      // Membro atualiza o próprio nome exibido (ao editar o perfil).
+      function renameSelf() {
+        return isMember(resource.data)
+          && changed().hasOnly(['memberNames'])
+          && namesDiff().affectedKeys() == me()
+          && validMemberName(request.resource.data.memberNames[request.auth.uid]);
+      }
+
+      allow read: if signedIn() && (isMember(resource.data) || isInvited(resource.data));
+
+      // Criada junto com teamCodes/{code}, na mesma transação.
+      allow create: if signedIn()
+        && validTeam(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.memberIds == [request.auth.uid]
+        && request.resource.data.adminIds == []
+        && validMemberName(request.resource.data.memberNames[request.auth.uid])
+        && request.resource.data.invitedEmails == []
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && getAfter(/databases/$(database)/documents/teamCodes/$(request.resource.data.code)).data.teamId == teamId;
+
+      allow update: if signedIn()
+        && validTeam(request.resource.data)
+        && !changed().hasAny(['code', 'createdBy', 'createdAt'])
+        && (editInfo() || invite() || manageMembers() || join() || leave()
+          || declineInvite() || renameSelf());
+
+      // Apagada pelo criador, junto com teamCodes/{code}.
+      allow delete: if signedIn() && isCreator(resource.data);
+    }
+
+    // Código de convite -> equipe. Pode ser consultado pelo código exato
+    // (entrar por código), mas não listado. Como não há regra de update,
+    // um código já usado nunca é sobrescrito.
+    match /teamCodes/{code} {
+      allow get: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['teamId', 'createdAt'])
+        && request.resource.data.keys().hasAll(['teamId', 'createdAt'])
+        && request.resource.data.teamId is string
+        && request.resource.data.createdAt == request.time
+        && !exists(teamPath(request.resource.data.teamId))
+        && getAfter(teamPath(request.resource.data.teamId)).data.code == code
+        && getAfter(teamPath(request.resource.data.teamId)).data.createdBy == request.auth.uid;
+
+      allow delete: if signedIn()
+        && get(teamPath(resource.data.teamId)).data.createdBy == request.auth.uid
+        && !existsAfter(teamPath(resource.data.teamId));
     }
   }
 }

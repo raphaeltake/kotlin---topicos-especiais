@@ -19,6 +19,20 @@ class TeamsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        render()
+        // Mostra o que já está em memória e atualiza com o Firestore em seguida.
+        FirebaseTeamRepository.loadTeams { result ->
+            if (isDestroyed) return@loadTeams
+            result.onFailure { error ->
+                android.widget.Toast.makeText(
+                    this, FirebaseTeamRepository.errorMessage(this, error), android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) render()
+        }
+    }
+
+    private fun render() {
         setContentView(R.layout.activity_teams)
         val root = findViewById<View>(R.id.teamsRoot)
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
@@ -55,7 +69,7 @@ class TeamsActivity : AppCompatActivity() {
             row.setOnClickListener { Navigation.open(this, "team", team.id) }
             parent.addView(row, index + offset)
         }
-        if (Workspace.teams.isEmpty()) parent.addView(emptyState(this, getString(R.string.screen_no_teams)))
+        if (Workspace.teams.isEmpty() && Workspace.teamsLoaded) parent.addView(emptyState(this, getString(R.string.screen_no_teams)))
     }
 }
 

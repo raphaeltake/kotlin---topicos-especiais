@@ -15,7 +15,37 @@ Para vincula-lo a um projeto Firebase:
 As regras incluídas no projeto permitem que cada usuário autenticado leia e
 grave apenas o documento `users/{uid}` pertencente à própria conta. Se elas não
 forem publicadas, o Authentication poderá criar o usuário, mas o cadastro
-falhará ao tentar salvar o perfil no Firestore com `PERMISSION_DENIED`.
+falhará ao tentar salvar o perfil no Firestore com `PERMISSION_DENIED`. O mesmo
+vale para a criação de equipes.
+
+## Estrutura do Firestore
+
+| Caminho | Conteúdo |
+| --- | --- |
+| `users/{uid}` | `name`, `email`, `createdAt`, `updatedAt` |
+| `teams/{teamId}` | `name`, `description`, `code`, `createdBy`, `memberIds`, `adminIds`, `memberNames`, `invitedEmails`, `createdAt`, `updatedAt` |
+| `teamCodes/{code}` | `teamId`, `createdAt` |
+
+Cada equipe é um único documento. `memberIds` lista os uids dos membros (o
+criador sempre incluído), `adminIds` os administradores (o criador fica fora
+dessa lista, mas tem todos os poderes), `memberNames` guarda o nome exibido de
+cada membro e `invitedEmails` os convites pendentes. O código de convite é
+reservado em `teamCodes/{code}` na mesma transação que cria a equipe, e as
+regras impedem sobrescrever um código existente.
+
+As operações ficam em `FirebaseTeamRepository`, e cada uma é validada por
+`firestore.rules`:
+
+| Operação | Quem pode |
+| --- | --- |
+| Criar equipe | Qualquer usuário autenticado |
+| Ver equipe e membros | Membros e convidados |
+| Editar nome e descrição, convidar por e-mail | Criador e administradores |
+| Promover/rebaixar e remover membros | Criador e administradores (o criador nunca é afetado) |
+| Entrar por código ou aceitar convite | Qualquer usuário, sempre como membro comum |
+| Recusar convite | O próprio convidado |
+| Sair da equipe | Qualquer membro, exceto o criador |
+| Apagar equipe | Só o criador |
 
 O plugin `com.google.gms.google-services` e aplicado automaticamente quando o
 arquivo de configuracao esta presente. Sem o arquivo, o projeto ainda compila,

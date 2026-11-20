@@ -49,6 +49,12 @@
     <string name="team_name_label">Nome da equipe</string>
     <string name="team_name_required_error">Informe o nome da equipe.</string>
     <string name="create_team_button">Criar equipe</string>
+    <string name="creating_team">Criando…</string>
+    <string name="team_name_too_long_error">O nome da equipe deve ter no máximo %1$d caracteres.</string>
+    <string name="team_description_too_long_error">A descrição deve ter no máximo %1$d caracteres.</string>
+    <string name="team_permission_denied">Você não tem permissão para fazer isso nesta equipe.</string>
+    <string name="team_no_longer_exists">Esta equipe não existe mais.</string>
+    <string name="team_creator_cannot_leave">Quem criou a equipe não pode sair dela. Você pode apagá-la em Gerenciar membros.</string>
     <string name="create_account">Criar conta</string>
     <string name="join_team_button">Entrar em equipe</string>
     <string name="your_teams">Suas equipes</string>

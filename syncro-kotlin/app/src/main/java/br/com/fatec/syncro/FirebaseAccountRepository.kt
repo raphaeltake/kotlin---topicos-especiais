@@ -87,6 +87,7 @@ object FirebaseAccountRepository {
                 )
             }.addOnCompleteListener { profileTask ->
                 if (profileTask.isSuccessful) {
+                    syncLocalProfile(user)
                     Workspace.profile.name = name
                     Workspace.profile.email = email
                     Workspace.profile.password = ""
@@ -109,6 +110,9 @@ object FirebaseAccountRepository {
         Workspace.profile.name = "Você"
         Workspace.profile.email = ""
         Workspace.profile.password = ""
+        Workspace.profile.uid = ""
+        // Evita que a próxima conta veja as equipes da anterior.
+        Workspace.clearTeams()
     }
 
     fun updateAccount(
@@ -163,6 +167,7 @@ object FirebaseAccountRepository {
                 Workspace.profile.name = name
                 Workspace.profile.email = email
                 Workspace.profile.password = ""
+                FirebaseTeamRepository.syncMemberName(name)
                 onComplete(null)
             } else {
                 onComplete(
@@ -174,6 +179,8 @@ object FirebaseAccountRepository {
     }
 
     private fun syncLocalProfile(user: FirebaseUser) {
+        if (Workspace.profile.uid != user.uid) Workspace.clearTeams()
+        Workspace.profile.uid = user.uid
         Workspace.profile.name = user.displayName?.takeIf { it.isNotBlank() } ?: "Você"
         Workspace.profile.email = user.email.orEmpty()
         Workspace.profile.password = ""

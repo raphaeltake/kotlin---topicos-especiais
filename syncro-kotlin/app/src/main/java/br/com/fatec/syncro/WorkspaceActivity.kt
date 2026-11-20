@@ -73,6 +73,10 @@ open class WorkspaceActivity : AppCompatActivity() {
     private fun go(screen: String, taskId: String? = null) = Navigation.open(this, screen, team?.id, taskId)
     private fun message(value: String) = Toast.makeText(this, value, Toast.LENGTH_SHORT).show()
     private fun color(id: Int) = ContextCompat.getColor(this, id)
+    private fun errorMessage(error: Throwable) = FirebaseTeamRepository.errorMessage(this, error)
+
+    /** Ignora respostas do Firebase que chegam depois de a tela ser fechada. */
+    private fun <T> alive(block: (T) -> Unit): (T) -> Unit = { if (!isDestroyed) block(it) }
     private fun dialog(layout: Int, bind: (View, androidx.appcompat.app.AlertDialog) -> Unit) {
         activeDialog?.dismiss()
         val view = layoutInflater.inflate(layout, null)
@@ -138,14 +142,20 @@ open class WorkspaceActivity : AppCompatActivity() {
         input.id = R.id.etTeamCode
         input.doAfterTextChanged { inputLayout.error = null }
         click(R.id.btnJoinTeam) {
+            val button = findViewById<View>(R.id.btnJoinTeam)
+            if (!button.isEnabled) return@click
             val code = input.text.toString().trim()
-            val match = Workspace.teams.firstOrNull { it.code.equals(code, true) }
-            if (match == null) {
-                inputLayout.error = getString(if (code.isEmpty()) R.string.screen_team_code_required else R.string.screen_team_not_found)
+            if (code.isEmpty()) {
+                inputLayout.error = getString(R.string.screen_team_code_required)
                 input.requestFocus()
                 return@click
             }
-            Navigation.open(this, "team", match.id); finish()
+            button.isEnabled = false
+            FirebaseTeamRepository.joinByCode(code, alive { result ->
+                button.isEnabled = true
+                result.onSuccess { joined -> Navigation.open(this, "team", joined.id); finish() }
+                    .onFailure { error -> inputLayout.error = errorMessage(error); input.requestFocus() }
+            })
         }
         findViewById<EditText>(R.id.etTeamCode).setOnEditorActionListener { _, action, _ ->
             if (action == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) { findViewById<View>(R.id.btnJoinTeam).performClick(); true } else false
@@ -165,8 +175,10 @@ open class WorkspaceActivity : AppCompatActivity() {
             text(R.id.tvNotification3, getString(R.string.screen_notification_join_request, current.name))
             text(R.id.tvNotification4, getString(R.string.screen_notification_invite_accepted, current.name))
         }
-        text(R.id.tvNotification5, getString(R.string.screen_notification_invited, getString(R.string.screen_invited_team_name)))
-        (findViewById<View>(R.id.tvNotification5).parent as View).visibility = if (Workspace.invitationPending) View.VISIBLE else View.GONE
+        // Exibe um convite por vez; ao responder, a tela mostra o próximo.
+        val invitation = Workspace.invitations.firstOrNull()
+        text(R.id.tvNotification5, getString(R.string.screen_notification_invited, invitation?.teamName.orEmpty()))
+        (findViewById<View>(R.id.tvNotification5).parent as View).visibility = if (invitation != null) View.VISIBLE else View.GONE
         teamNotifications.forEachIndexed { index, id ->
             click(id) {
                 if (current == null) { message(getString(R.string.screen_no_team_available)); return@click }
@@ -175,21 +187,23 @@ open class WorkspaceActivity : AppCompatActivity() {
                 else Navigation.open(this, if (current.admin && index in 1..2) "members" else "team", current.id)
             }
         }
+        val inviteButtons = listOf(R.id.btnAcceptInvite, R.id.btnDeclineInvite).mapNotNull { findViewById<View>(it) }
         click(R.id.btnAcceptInvite) {
-            Workspace.invitationPending = false
-            val joined = Workspace.Team(
-                name = getString(R.string.screen_invited_team_name),
-                description = getString(R.string.screen_invited_team_description),
-                admin = false,
-                tasks = mutableListOf(),
-                members = mutableListOf(Workspace.Member(Workspace.profile.name, "Membro"))
-            )
-            Workspace.teams.add(joined); Navigation.open(this, "team", joined.id); finish()
+            if (invitation == null || inviteButtons.any { !it.isEnabled }) return@click
+            inviteButtons.forEach { it.isEnabled = false }
+            FirebaseTeamRepository.acceptInvitation(invitation, alive { result ->
+                result.onSuccess { joined -> Navigation.open(this, "team", joined.id); finish() }
+                    .onFailure { error -> message(errorMessage(error)); render() }
+            })
         }
         click(R.id.btnDeclineInvite) {
-            Workspace.invitationPending = false
-            (findViewById<View>(R.id.tvNotification5).parent as View).visibility = View.GONE
-            message(getString(R.string.screen_invite_declined))
+            if (invitation == null || inviteButtons.any { !it.isEnabled }) return@click
+            inviteButtons.forEach { it.isEnabled = false }
+            FirebaseTeamRepository.declineInvitation(invitation, alive { result ->
+                result.onSuccess { message(getString(R.string.screen_invite_declined)) }
+                    .onFailure { error -> message(errorMessage(error)) }
+                render()
+            })
         }
     }
     private fun bindTeam() {
@@ -217,7 +231,12 @@ open class WorkspaceActivity : AppCompatActivity() {
         click(R.id.btnTaskHistory) { go("history") }
         if (current.admin) click(R.id.btnAddTask) { editTask(null) }
         click(R.id.btnLeaveTeam) {
-            confirm(R.layout.dialog_leave_team, R.id.btnConfirmLeaveTeam) { Workspace.teams.remove(team); Navigation.home(this) }
+            if (current.isCreator) { message(getString(R.string.team_creator_cannot_leave)); return@click }
+            confirm(R.layout.dialog_leave_team, R.id.btnConfirmLeaveTeam) {
+                FirebaseTeamRepository.leaveTeam(current, alive { result ->
+                    result.onSuccess { Navigation.home(this) }.onFailure { error -> message(errorMessage(error)) }
+                })
+            }
         }
         bindTasks(false)
         bindInlineMembers()
@@ -275,11 +294,29 @@ open class WorkspaceActivity : AppCompatActivity() {
     private fun editTeam() = dialog(R.layout.dialog_edit_team) { view, dialog ->
         val current = team!!
         val name = view.findViewById<EditText>(R.id.etTeamName).apply { setText(current.name); clearErrorOnChange() }
-        val description = view.findViewById<EditText>(R.id.etTeamDescription).apply { setText(current.description) }
-        view.findViewById<View>(R.id.btnSaveTeam).setOnClickListener {
-            if (name.text.isBlank()) { name.showError(getString(R.string.team_name_required_error)); return@setOnClickListener }
-            current.name = name.text.toString().trim(); current.description = description.text.toString().trim()
-            dialog.dismiss(); render()
+        val description = view.findViewById<EditText>(R.id.etTeamDescription).apply { setText(current.description); clearErrorOnChange() }
+        val save = view.findViewById<View>(R.id.btnSaveTeam)
+        save.setOnClickListener {
+            val newName = name.text.toString().trim()
+            val newDescription = description.text.toString().trim()
+            val nameError = when {
+                newName.isEmpty() -> getString(R.string.team_name_required_error)
+                newName.length > FirebaseTeamRepository.MAX_NAME_LENGTH ->
+                    getString(R.string.team_name_too_long_error, FirebaseTeamRepository.MAX_NAME_LENGTH)
+                else -> null
+            }
+            val descriptionError = if (newDescription.length > FirebaseTeamRepository.MAX_DESCRIPTION_LENGTH)
+                getString(R.string.team_description_too_long_error, FirebaseTeamRepository.MAX_DESCRIPTION_LENGTH)
+            else null
+            name.showError(nameError)
+            description.showError(descriptionError)
+            if (nameError != null || descriptionError != null || !save.isEnabled) return@setOnClickListener
+            save.isEnabled = false
+            FirebaseTeamRepository.updateTeam(current, newName, newDescription, alive { result ->
+                save.isEnabled = true
+                result.onSuccess { dialog.dismiss(); render() }
+                    .onFailure { error -> name.showError(errorMessage(error)) }
+            })
         }
     }
     private fun bindTasks(history: Boolean) {
@@ -449,7 +486,15 @@ open class WorkspaceActivity : AppCompatActivity() {
                     .putExtra(Navigation.RETURN_TO_CALLER, true)
             )
         }
-        click(R.id.btnDeleteTeam) { confirm(R.layout.dialog_delete_team, R.id.btnConfirmDeleteTeam) { Workspace.teams.remove(team); Navigation.home(this) } }
+        // Só quem criou a equipe pode apagá-la.
+        findViewById<View>(R.id.btnDeleteTeam)?.visibility = if (team!!.isCreator) View.VISIBLE else View.GONE
+        click(R.id.btnDeleteTeam) {
+            confirm(R.layout.dialog_delete_team, R.id.btnConfirmDeleteTeam) {
+                FirebaseTeamRepository.deleteTeam(team!!, alive { result ->
+                    result.onSuccess { Navigation.home(this) }.onFailure { error -> message(errorMessage(error)) }
+                })
+            }
+        }
         bindManagedMembers()
     }
     private fun bindManagedMembers() {
@@ -465,12 +510,13 @@ open class WorkspaceActivity : AppCompatActivity() {
             val roleLabel = card.findViewById<TextView>(R.id.tvManagedMemberRole)
             val roleSpinner = card.findViewById<Spinner>(R.id.spinnerManagedMemberRole)
             val removeButton = card.findViewById<View>(R.id.btnRemoveManagedMember)
-            val isCreator = member.role == "Criador(a)"
-            roleLabel.visibility = if (isCreator) View.VISIBLE else View.GONE
+            // O criador não pode ser alterado; o próprio usuário sai pelo botão "Sair da equipe".
+            val locked = member.role == "Criador(a)" || member.uid == Workspace.profile.uid
+            roleLabel.visibility = if (locked) View.VISIBLE else View.GONE
             roleLabel.text = getString(R.string.screen_role_format, member.role)
-            roleSpinner.visibility = if (isCreator) View.GONE else View.VISIBLE
-            removeButton.visibility = if (isCreator) View.GONE else View.VISIBLE
-            if (!isCreator) {
+            roleSpinner.visibility = if (locked) View.GONE else View.VISIBLE
+            removeButton.visibility = if (locked) View.GONE else View.VISIBLE
+            if (!locked) {
                 val options = listOf("Administrador(a)", "Membro")
                 roleSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options).apply {
                     setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -479,17 +525,25 @@ open class WorkspaceActivity : AppCompatActivity() {
                 roleSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                     override fun onNothingSelected(parent: AdapterView<*>?) = Unit
                     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                        member.role = options[position]
+                        // O Spinner também chama este método ao exibir a seleção inicial.
+                        if (options[position] == member.role) return
+                        FirebaseTeamRepository.setAdmin(team!!, member, options[position] == "Administrador(a)", alive { result ->
+                            result.onFailure { error -> message(errorMessage(error)); render() }
+                        })
                     }
                 }
                 removeButton.setOnClickListener {
                     dialog(R.layout.dialog_remove_member) { view, dialog ->
                         view.findViewById<TextView>(R.id.tvMemberName).text = member.name
-                        view.findViewById<View>(R.id.btnConfirmRemoveMember).setOnClickListener {
-                            team!!.members.remove(member)
-                            dialog.dismiss()
-                            render()
-                            confirm(R.layout.dialog_member_removed, R.id.btnOk) { }
+                        view.findViewById<View>(R.id.btnConfirmRemoveMember).setOnClickListener { button ->
+                            button.isEnabled = false
+                            FirebaseTeamRepository.removeMember(team!!, member, alive { result ->
+                                dialog.dismiss()
+                                result.onSuccess {
+                                    render()
+                                    confirm(R.layout.dialog_member_removed, R.id.btnOk) { }
+                                }.onFailure { error -> message(errorMessage(error)) }
+                            })
                         }
                     }
                 }

@@ -38,24 +38,45 @@ class CreateTeamActivity : AppCompatActivity() {
             teamNameInputLayout.error = null
         }
 
+        fun setCreating(creating: Boolean) {
+            createTeamButton.isEnabled = !creating
+            teamNameInput.isEnabled = !creating
+            createTeamButton.text = getString(
+                if (creating) R.string.creating_team else R.string.create_team_button
+            )
+        }
+
         createTeamButton.setOnClickListener {
+            // performClick() (tecla Enter) ignora isEnabled, então é preciso conferir.
+            if (!createTeamButton.isEnabled) return@setOnClickListener
             val teamName = teamNameInput.text?.toString()?.trim().orEmpty()
 
-            if (teamName.isEmpty()) {
-                teamNameInputLayout.error = getString(R.string.team_name_required_error)
+            teamNameInputLayout.error = when {
+                teamName.isEmpty() -> getString(R.string.team_name_required_error)
+                teamName.length > FirebaseTeamRepository.MAX_NAME_LENGTH -> getString(
+                    R.string.team_name_too_long_error,
+                    FirebaseTeamRepository.MAX_NAME_LENGTH
+                )
+                else -> null
+            }
+            if (teamNameInputLayout.error != null) {
                 teamNameInput.requestFocus()
                 return@setOnClickListener
             }
 
-            val team = Workspace.Team(
-                name = teamName,
-                description = "",
-                tasks = mutableListOf(),
-                members = mutableListOf(Workspace.Member(Workspace.profile.name, "Criador(a)"))
-            )
-            Workspace.teams.add(team)
-            startActivity(Intent(this, InviteTeamActivity::class.java).putExtra(Navigation.TEAM, team.id))
-            finish()
+            setCreating(true)
+            FirebaseTeamRepository.createTeam(teamName) { result ->
+                result.onSuccess { team ->
+                    if (isDestroyed) return@onSuccess
+                    startActivity(
+                        Intent(this, InviteTeamActivity::class.java).putExtra(Navigation.TEAM, team.id)
+                    )
+                    finish()
+                }.onFailure { error ->
+                    setCreating(false)
+                    teamNameInputLayout.error = FirebaseTeamRepository.errorMessage(this, error)
+                }
+            }
         }
 
         teamNameInput.setOnEditorActionListener { _, actionId, event ->

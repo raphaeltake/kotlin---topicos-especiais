@@ -118,17 +118,30 @@ class InviteTeamActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<View>(R.id.btnInvite).setOnClickListener {
+        val inviteButton = findViewById<View>(R.id.btnInvite)
+        inviteButton.setOnClickListener {
+            if (!inviteButton.isEnabled) return@setOnClickListener
             if (!emailInput.text.isNullOrBlank()) {
                 addEmail()
                 if (emailInputLayout.error != null) return@setOnClickListener
             }
-            when {
-                invitedEmails.isNotEmpty() ->
-                    Navigation.open(this, "success", currentTeam.id, returnToCaller = returnToCaller)
-                !returnToCaller -> Navigation.open(this, "team", currentTeam.id)
+            if (invitedEmails.isEmpty()) {
+                if (!returnToCaller) Navigation.open(this, "team", currentTeam.id)
+                finish()
+                return@setOnClickListener
             }
-            finish()
+
+            inviteButton.isEnabled = false
+            FirebaseTeamRepository.inviteMembers(currentTeam, invitedEmails.toList()) { result ->
+                if (isDestroyed) return@inviteMembers
+                inviteButton.isEnabled = true
+                result.onSuccess {
+                    Navigation.open(this, "success", currentTeam.id, returnToCaller = returnToCaller)
+                    finish()
+                }.onFailure { error ->
+                    emailInputLayout.error = FirebaseTeamRepository.errorMessage(this, error)
+                }
+            }
         }
     }
 
