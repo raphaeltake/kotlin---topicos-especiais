@@ -1,6 +1,6 @@
 package br.com.fatec.syncro
 
-/** Local prototype state. No remote requests are made. */
+/** Estado local temporário para as áreas que ainda não foram migradas ao Firestore. */
 object Workspace {
     private fun dateIn(days: Long) = java.time.LocalDate.now().plusDays(days).format(DueDates.formatter)
     data class Profile(var name: String = "Você", var email: String = "", var password: String = "")

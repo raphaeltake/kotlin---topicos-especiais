@@ -1,7 +1,6 @@
 package br.com.fatec.syncro.ui
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.text.InputType
 import android.util.AttributeSet
@@ -39,7 +38,9 @@ class SyncroTextInput @JvmOverloads constructor(
         setBoxStrokeColorStateList(requireNotNull(
             ContextCompat.getColorStateList(context, R.color.input_stroke)
         ))
-        hintTextColor = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gray))
+        hintTextColor = requireNotNull(
+            ContextCompat.getColorStateList(context, R.color.input_hint)
+        )
 
         context.obtainStyledAttributes(
             attrs,

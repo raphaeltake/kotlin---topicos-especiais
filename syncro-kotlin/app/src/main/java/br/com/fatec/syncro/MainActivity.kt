@@ -17,6 +17,17 @@ import br.com.fatec.syncro.ui.SyncroTextInput
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (FirebaseAccountRepository.restoreSession()) {
+            startActivity(
+                Intent(this, TeamsActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
+            finish()
+            return
+        }
+
         enableEdgeToEdge()
         setContentView(R.layout.emaillogin)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

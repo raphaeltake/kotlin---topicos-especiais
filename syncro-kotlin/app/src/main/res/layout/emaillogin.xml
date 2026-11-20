@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/bg_light"
     tools:context=".MainActivity">
 
     <ImageView
@@ -17,13 +18,11 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/logo" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button"
+        style="@style/Screen.Button.Primary"
         android:layout_width="294dp"
-        android:layout_height="49dp"
-        android:backgroundTint="@color/blue"
         android:text="Entrar"
-        android:textColorLink="#2563EB"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"

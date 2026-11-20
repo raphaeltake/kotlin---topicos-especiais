@@ -464,22 +464,44 @@ open class WorkspaceActivity : AppCompatActivity() {
         val confirm = findViewById<br.com.fatec.syncro.ui.SyncroTextInput>(R.id.profileConfirmPasswordInput)
         name.input.setText(Workspace.profile.name)
         email.input.setText(Workspace.profile.email)
-        password.input.setText(Workspace.profile.password)
-        confirm.input.setText(Workspace.profile.password)
+        password.input.setText("")
+        confirm.input.setText("")
         click(R.id.btnSaveProfile) {
             val newName = name.input.text.toString().trim()
             val newEmail = email.input.text.toString().trim()
             val newPassword = password.input.text.toString()
             name.error = if (newName.isBlank()) getString(R.string.name_required_error) else null
             email.error = if (!android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) getString(R.string.email_invalid_error) else null
-            password.error = if (newPassword.isNotEmpty() && newPassword.isBlank()) getString(R.string.password_required_error) else null
+            password.error = when {
+                newPassword.isNotEmpty() && newPassword.isBlank() ->
+                    getString(R.string.password_required_error)
+                newPassword.isNotEmpty() && newPassword.length < 6 ->
+                    getString(R.string.auth_weak_password)
+                else -> null
+            }
             confirm.error = if (newPassword != confirm.input.text.toString()) getString(R.string.passwords_do_not_match_error) else null
             if (listOf(name, email, password, confirm).any { it.error != null }) return@click
-            Workspace.profile.name = newName
-            Workspace.profile.email = newEmail
-            if (newPassword.isNotEmpty()) Workspace.profile.password = newPassword
-            message("Perfil atualizado")
-            finish()
+
+            val saveButton = findViewById<Button>(R.id.btnSaveProfile)
+            saveButton.isEnabled = false
+            saveButton.text = getString(R.string.saving_profile)
+            FirebaseAccountRepository.updateAccount(newName, newEmail, newPassword) { error ->
+                saveButton.isEnabled = true
+                saveButton.text = getString(R.string.save_changes)
+                if (error == null) {
+                    message(getString(R.string.profile_updated))
+                    finish()
+                } else {
+                    val errorMessage = FirebaseAccountRepository.errorMessage(this, error)
+                    when (error) {
+                        is com.google.firebase.auth.FirebaseAuthUserCollisionException ->
+                            email.error = errorMessage
+                        is com.google.firebase.auth.FirebaseAuthWeakPasswordException ->
+                            password.error = errorMessage
+                        else -> password.error = errorMessage
+                    }
+                }
+            }
         }
     }
     override fun onDestroy() { activeDialog?.dismiss(); super.onDestroy() }

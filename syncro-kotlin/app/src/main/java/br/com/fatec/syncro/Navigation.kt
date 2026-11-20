@@ -47,6 +47,7 @@ object Navigation {
         val dialog = MaterialAlertDialogBuilder(activity).setView(view).create()
         view.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.btnConfirmLogout).setOnClickListener {
+            FirebaseAccountRepository.signOut()
             dialog.dismiss()
             activity.startActivity(Intent(activity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         }

@@ -32,7 +32,7 @@
                 app:endIconContentDescription="@string/toggle_password_visibility"
                 app:endIconMode="password_toggle" />
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveProfile"
-                style="@style/Screen.Button.Primary" android:text="Salvar alterações"
+                style="@style/Screen.Button.Primary" android:text="@string/save_changes"
                 android:layout_marginTop="24dp" />
         </LinearLayout>
     </ScrollView>

@@ -40,6 +40,7 @@ class CadastroActivity : AppCompatActivity() {
             findViewById<SyncroTextInput>(R.id.confirmPasswordInputLayout)
         val confirmPasswordInput = confirmPasswordInputLayout.input
         val registerButton = findViewById<Button>(R.id.registerButton)
+        var registrationInProgress = false
 
         fun validateFields(): Boolean {
             val name = nameInput.text?.toString()?.trim().orEmpty()
@@ -62,6 +63,8 @@ class CadastroActivity : AppCompatActivity() {
 
             passwordInputLayout.error = if (password.isBlank()) {
                 getString(R.string.password_required_error)
+            } else if (password.length < 6) {
+                getString(R.string.auth_weak_password)
             } else {
                 null
             }
@@ -93,15 +96,35 @@ class CadastroActivity : AppCompatActivity() {
         }
 
         registerButton.setOnClickListener {
-            if (validateFields()) {
-                Workspace.profile.name = nameInput.text.toString().trim()
-                Workspace.profile.email = emailInput.text.toString().trim()
-                Workspace.profile.password = passwordInput.text.toString()
-                startActivity(
-                    Intent(this, TeamsActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            if (!registrationInProgress && validateFields()) {
+                val name = nameInput.text.toString().trim()
+                val email = emailInput.text.toString().trim()
+                val password = passwordInput.text.toString()
+                registrationInProgress = true
+                registerButton.isEnabled = false
+                registerButton.text = getString(R.string.registering)
+
+                FirebaseAccountRepository.createAccount(name, email, password) { error ->
+                    registrationInProgress = false
+                    registerButton.isEnabled = true
+                    registerButton.text = getString(R.string.register)
+
+                    if (error == null) {
+                        startActivity(
+                            Intent(this, TeamsActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            }
+                        )
+                    } else {
+                        val message = FirebaseAccountRepository.errorMessage(this, error)
+                        if (message == getString(R.string.auth_email_already_in_use)) {
+                            emailInputLayout.error = message
+                        } else {
+                            passwordInputLayout.error = message
+                        }
                     }
-                )
+                }
             }
         }
 
