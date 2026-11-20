@@ -1,39 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="@color/bg_light">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_light"
+    android:orientation="vertical">
+
     <include layout="@layout/include_screen_toolbar" />
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1" android:fillViewport="true">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:padding="24dp">
-            <TextView style="@style/Screen.Title" android:text="Gerenciar perfil"
-                android:layout_marginBottom="24dp" />
-            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profileNameInput"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:hint="Nome" android:inputType="textPersonName" android:autofillHints="personName" />
-            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profileEmailInput"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" android:hint="E-mail"
-                android:inputType="textEmailAddress" android:autofillHints="emailAddress" />
-            <TextView style="@style/Screen.Body" android:layout_marginTop="24dp"
-                android:text="Para alterar a senha, preencha os dois campos abaixo." />
-            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profilePasswordInput"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" android:hint="Nova senha (opcional)"
-                android:inputType="textPassword" android:autofillHints="newPassword"
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="ifContentScrolls">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/Screen.Title"
+                android:layout_marginBottom="16dp"
+                android:text="@string/profile_title" />
+
+            <br.com.fatec.syncro.ui.SyncroTextInput
+                android:id="@+id/profileNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:autofillHints="name"
+                android:hint="@string/name_label"
+                android:imeOptions="actionNext"
+                android:inputType="textPersonName|textCapWords" />
+
+            <br.com.fatec.syncro.ui.SyncroTextInput
+                android:id="@+id/profileEmailInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:autofillHints="emailAddress"
+                android:hint="@string/email_input_label"
+                android:imeOptions="actionNext"
+                android:inputType="textEmailAddress" />
+
+            <TextView
+                style="@style/Screen.Body"
+                android:layout_marginTop="24dp"
+                android:text="@string/profile_password_help" />
+
+            <br.com.fatec.syncro.ui.SyncroTextInput
+                android:id="@+id/profilePasswordInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:autofillHints="newPassword"
+                android:hint="@string/profile_new_password_hint"
+                android:imeOptions="actionNext"
+                android:inputType="textPassword"
                 app:endIconContentDescription="@string/toggle_password_visibility"
                 app:endIconMode="password_toggle" />
-            <br.com.fatec.syncro.ui.SyncroTextInput android:id="@+id/profileConfirmPasswordInput"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" android:hint="Confirmar nova senha"
-                android:inputType="textPassword" android:autofillHints="newPassword"
+
+            <br.com.fatec.syncro.ui.SyncroTextInput
+                android:id="@+id/profileConfirmPasswordInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:autofillHints="newPassword"
+                android:hint="@string/profile_confirm_password_hint"
+                android:imeOptions="actionDone"
+                android:inputType="textPassword"
                 app:endIconContentDescription="@string/toggle_password_visibility"
                 app:endIconMode="password_toggle" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveProfile"
-                style="@style/Screen.Button.Primary" android:text="@string/save_changes"
-                android:layout_marginTop="24dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveProfile"
+                style="@style/Screen.Button.Primary"
+                android:layout_marginTop="24dp"
+                android:text="@string/save_changes" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -30,7 +30,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_badge"
         android:backgroundTint="@color/status_green_bg"
-        android:paddingHorizontal="8dp"
+        android:layout_marginStart="8dp"
+        android:paddingHorizontal="12dp"
         android:paddingVertical="4dp"
         android:textColor="@color/status_green"
         android:textSize="11sp"
@@ -47,22 +48,36 @@
         android:maxLines="1"
         android:textColor="@color/gray"
         android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@id/tvDueDate"
+        app:layout_constraintEnd_toStartOf="@id/dateLayout"
         app:layout_constraintStart_toStartOf="@id/tvTaskTitle"
         app:layout_constraintTop_toBottomOf="@id/tvTaskTitle" />
 
-    <TextView
-        android:id="@+id/tvDueDate"
+    <LinearLayout
+        android:id="@+id/dateLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawablePadding="4dp"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:drawableStartCompat="@drawable/ic_hourglass"
-        app:drawableTint="@color/black"
+        android:layout_marginStart="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="@id/tvResponsibles"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvResponsibles" />
+        app:layout_constraintTop_toTopOf="@id/tvResponsibles">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_hourglass"
+            app:tint="@color/black" />
+
+        <TextView
+            android:id="@+id/tvDueDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

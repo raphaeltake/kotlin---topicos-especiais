@@ -35,16 +35,14 @@ class InviteTeamActivity : AppCompatActivity() {
         setContentView(R.layout.activity_invite_team)
         val currentTeam = Workspace.team(intent.getStringExtra(Navigation.TEAM))
         if (currentTeam == null) { Navigation.home(this); return }
-        Navigation.toolbar(this, currentTeam.id)
+        // Aberta a partir de "Gerenciar membros": ao terminar, volta para lá
+        // em vez de empilhar uma nova tela da equipe.
+        val returnToCaller = intent.getBooleanExtra(Navigation.RETURN_TO_CALLER, false)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.inviteTeamRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
-        }
-
-        findViewById<View>(R.id.btnBack).setOnClickListener {
-            finish()
         }
 
         val teamCode = findViewById<TextView>(R.id.tvTeamCode)
@@ -125,7 +123,11 @@ class InviteTeamActivity : AppCompatActivity() {
                 addEmail()
                 if (emailInputLayout.error != null) return@setOnClickListener
             }
-            Navigation.open(this, if (invitedEmails.isEmpty()) "team" else "success", currentTeam.id)
+            when {
+                invitedEmails.isNotEmpty() ->
+                    Navigation.open(this, "success", currentTeam.id, returnToCaller = returnToCaller)
+                !returnToCaller -> Navigation.open(this, "team", currentTeam.id)
+            }
             finish()
         }
     }
@@ -143,7 +145,7 @@ class InviteTeamActivity : AppCompatActivity() {
     private fun renderEmailList(container: LinearLayout) {
         container.removeAllViews()
         findViewById<TextView>(R.id.tvInviteAction).text =
-            if (invitedEmails.isEmpty()) "Continuar sem convidar" else getString(R.string.invite_button)
+            getString(if (invitedEmails.isEmpty()) R.string.continue_without_invite else R.string.invite_button)
 
         invitedEmails.forEach { email ->
             val row = LinearLayout(this).apply {

@@ -34,4 +34,11 @@ class DueDatesTest {
         assertFalse(DueDates.isDueSoon("20/09/2026", today))
         assertFalse(DueDates.isDueSoon("data inválida", today))
     }
+
+    @Test fun marksOnlyPastDatesAsOverdue() {
+        val today = LocalDate.of(2026, 9, 21)
+        assertTrue(DueDates.isOverdue("20/09/2026", today))
+        assertFalse(DueDates.isOverdue("21/09/2026", today))
+        assertFalse(DueDates.isOverdue("data inválida", today))
+    }
 }

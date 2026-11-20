@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_light"
-    tools:context=".MainActivity">
+    tools:context=".TeamDetailsActivity">
 
     <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -23,7 +23,7 @@
             android:layout_width="@dimen/top_bar_icon_touch_size"
             android:layout_height="@dimen/top_bar_icon_touch_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Voltar"
+            android:contentDescription="@string/screen_back"
             android:padding="@dimen/top_bar_icon_padding"
             android:src="@drawable/ic_arrow_back"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -37,7 +37,7 @@
             android:layout_width="@dimen/top_bar_icon_touch_size"
             android:layout_height="@dimen/top_bar_icon_touch_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Notificações"
+            android:contentDescription="@string/screen_notifications"
             android:padding="@dimen/top_bar_icon_padding"
             android:src="@drawable/ic_notifications"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -57,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="16dp">
 
             <!-- Team Info Card -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -80,14 +80,15 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageView
+                <ImageButton
                     android:id="@+id/btnEditTeam"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Editar equipe"
-                    android:padding="10dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/screen_edit_team"
+                    android:padding="9dp"
                     android:src="@drawable/ic_edit"
                     app:layout_constraintBottom_toBottomOf="@+id/tvTeamName"
                     app:layout_constraintEnd_toStartOf="@id/tvMemberCountBadge"
@@ -103,7 +104,7 @@
                     android:backgroundTint="@color/light_gray"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="4dp"
-                    android:text="membros: 10"
+                    android:text="10 membros"
                     android:textColor="@color/black"
                     android:textSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -114,7 +115,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Descrição da equipe"
+                    android:text="@string/screen_team_description"
                     android:textColor="@color/gray"
                     android:textSize="14sp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -145,7 +146,7 @@
                         android:id="@+id/tvTasksTabLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tarefas"
+                        android:text="@string/screen_tasks"
                         android:textColor="@color/blue"
                         android:textStyle="bold" />
 
@@ -175,7 +176,7 @@
                         android:id="@+id/tvMembersTabLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Membros"
+                        android:text="@string/screen_members"
                         android:textColor="@color/black" />
 
                     <TextView
@@ -203,7 +204,7 @@
                     android:id="@+id/tvTeamSectionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tarefas"
+                    android:text="@string/screen_tasks"
                     android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold"
@@ -211,10 +212,13 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageView
+                <ImageButton
                     android:id="@+id/btnTaskHistory"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/screen_task_history"
+                    android:padding="8dp"
                     android:src="@drawable/ic_history"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -235,6 +239,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_add"
                     app:tint="@color/white" />
 
@@ -242,7 +247,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Adicionar tarefa"
+                    android:text="@string/screen_add_task"
                     android:textColor="@color/white"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -491,7 +496,7 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:contentDescription="Gerenciar membros"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_team_members"
                         app:tint="@color/white" />
 
@@ -499,7 +504,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Gerenciar membros"
+                        android:text="@string/screen_manage_members"
                         android:textColor="@color/white"
                         android:textStyle="bold" />
 
@@ -520,11 +525,11 @@
     <LinearLayout
         android:id="@+id/footerButton"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="wrap_content"
         android:background="@color/white"
         android:elevation="8dp"
         android:gravity="center"
-        android:paddingHorizontal="20dp"
+        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
@@ -537,6 +542,7 @@
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:importantForAccessibility="no"
                 android:src="@drawable/ic_logout"
                 app:tint="@color/blue" />
 
@@ -544,7 +550,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Sair da equipe"
+                android:text="@string/screen_leave_team"
                 android:textColor="@color/blue"
                 android:textStyle="bold" />
         </LinearLayout>

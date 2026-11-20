@@ -222,7 +222,7 @@
         <LinearLayout
             android:id="@+id/btnInvite"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="52dp"
             android:background="@drawable/bg_button_blue"
             android:gravity="center"
             android:clickable="true"
@@ -237,11 +237,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="8dp"
                 android:id="@+id/tvInviteAction"
                 android:text="@string/invite_button"
                 android:textColor="@color/white"
-                android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
 

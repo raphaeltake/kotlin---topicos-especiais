@@ -11,6 +11,6 @@
             android:orientation="vertical" />
         <com.google.android.material.button.MaterialButton android:id="@+id/btnCloseHistory"
             style="@style/Screen.Button.Primary" android:layout_marginTop="16dp"
-            android:text="@string/screen_back" />
+            android:text="@string/screen_close" />
     </LinearLayout>
 </ScrollView>

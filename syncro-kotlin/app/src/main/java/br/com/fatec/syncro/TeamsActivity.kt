@@ -42,21 +42,28 @@ class TeamsActivity : AppCompatActivity() {
             val row = layoutInflater.inflate(R.layout.item_team, parent, false)
             row.findViewById<TextView>(R.id.tvTeamName).text = team.name
             row.findViewById<TextView>(R.id.tvTeamDescription).apply {
-                text = team.description
+                text = Navigation.descriptionOrDefault(this@TeamsActivity, team.description)
                 maxLines = 5
                 ellipsize = TextUtils.TruncateAt.END
                 isClickable = false
                 isFocusable = false
             }
-            row.findViewById<TextView>(R.id.tvMemberCount).text = "${team.members.size} membros"
-            row.findViewById<TextView>(R.id.tvNewTaskCount).text = "${team.tasks.count { it.status != Workspace.Status.FINISHED }} tarefas ativas"
-            row.isFocusable = true
+            row.findViewById<TextView>(R.id.tvMemberCount).text =
+                Navigation.membersCount(this, team.members.size)
+            row.findViewById<TextView>(R.id.tvNewTaskCount).text =
+                Navigation.activeTasksCount(this, team.tasks.count { it.status != Workspace.Status.FINISHED })
             row.setOnClickListener { Navigation.open(this, "team", team.id) }
             parent.addView(row, index + offset)
         }
-        if (Workspace.teams.isEmpty()) parent.addView(TextView(this).apply {
-            text = "Você ainda não participa de nenhuma equipe."
-            setPadding(16, 24, 16, 24)
-        })
+        if (Workspace.teams.isEmpty()) parent.addView(emptyState(this, getString(R.string.screen_no_teams)))
     }
+}
+
+/** Mensagem de lista vazia com o mesmo estilo de texto usado nas telas. */
+internal fun emptyState(context: android.content.Context, message: String) = TextView(context).apply {
+    val padding = (16 * context.resources.displayMetrics.density).toInt()
+    text = message
+    setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.gray))
+    textSize = 14f
+    setPadding(0, padding, 0, padding)
 }

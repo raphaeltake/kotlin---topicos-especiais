@@ -7,7 +7,11 @@ object Workspace {
     val profile = Profile()
     var hasUnreadNotifications = true
     enum class Status { PENDING, IN_PROGRESS, FINISHED }
-    data class Comment(var text: String, val history: MutableList<String> = mutableListOf())
+    data class Comment(
+        var text: String,
+        val history: MutableList<String> = mutableListOf(),
+        val author: String = profile.name
+    )
     data class Task(
         val id: String = java.util.UUID.randomUUID().toString(),
         var title: String = "Título tarefa",
@@ -15,7 +19,9 @@ object Workspace {
         var responsibles: String = "Nome responsável",
         var date: String = java.time.LocalDate.now().format(DueDates.formatter),
         var status: Status = Status.PENDING,
-        val comments: MutableList<Comment> = mutableListOf(Comment("Comentário da tarefa"))
+        val comments: MutableList<Comment> = mutableListOf(
+            Comment("Comentário da tarefa", author = responsibles.substringBefore(" |"))
+        )
     ) {
         fun advance() {
             status = when (status) {

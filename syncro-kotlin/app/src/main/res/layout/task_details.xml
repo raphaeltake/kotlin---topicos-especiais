@@ -5,7 +5,8 @@
     android:id="@+id/taskDetailsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_light">
+    android:background="@color/bg_light"
+    tools:context=".TaskDetailsActivity">
 
     <!-- Top Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -22,7 +23,7 @@
             android:layout_width="@dimen/top_bar_icon_touch_size"
             android:layout_height="@dimen/top_bar_icon_touch_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Voltar"
+            android:contentDescription="@string/screen_back"
             android:padding="@dimen/top_bar_icon_padding"
             android:src="@drawable/ic_arrow_back"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -36,7 +37,7 @@
             android:layout_width="@dimen/top_bar_icon_touch_size"
             android:layout_height="@dimen/top_bar_icon_touch_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Notificações"
+            android:contentDescription="@string/screen_notifications"
             android:padding="@dimen/top_bar_icon_padding"
             android:src="@drawable/ic_notifications"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -102,7 +103,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Editar tarefa"
+                    android:contentDescription="@string/screen_edit_task"
                     android:padding="9dp"
                     android:src="@drawable/ic_edit"
                     app:layout_constraintBottom_toBottomOf="@id/tvStatusBadge"
@@ -122,6 +123,7 @@
                     <ImageView
                         android:layout_width="16dp"
                         android:layout_height="16dp"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_hourglass"
                         app:tint="@color/black" />
 
@@ -138,10 +140,12 @@
 
                 <View
                     android:id="@+id/divider"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="1dp"
                     android:layout_marginTop="16dp"
                     android:background="@color/light_gray"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvStatusBadge" />
 
                 <TextView
@@ -155,6 +159,7 @@
                     android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/divider" />
 
@@ -172,7 +177,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Descrição:"
+                    android:text="@string/screen_description"
                     android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -201,7 +206,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Comentários"
+                    android:text="@string/screen_comments"
                     android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -217,14 +222,15 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_history"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_add"
                         app:tint="@color/white" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Comentar"
+                        android:text="@string/screen_comment"
                         android:textColor="@color/white"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -303,9 +309,11 @@
             android:gravity="center">
 
             <ImageView
+                android:id="@+id/ivTaskActionIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:src="@drawable/ic_history"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_play"
                 app:tint="@color/white" />
 
             <TextView
@@ -329,14 +337,15 @@
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:src="@drawable/ic_logout"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_delete"
                 app:tint="@color/blue" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Apagar tarefa"
+                android:text="@string/screen_delete_task"
                 android:textColor="@color/blue"
                 android:textStyle="bold" />
         </LinearLayout>

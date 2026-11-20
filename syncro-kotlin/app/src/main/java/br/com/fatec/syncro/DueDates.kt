@@ -17,4 +17,7 @@ object DueDates {
         parse(value)?.let { date ->
             !date.isBefore(today) && date.isBefore(today.plusWeeks(1))
         } ?: false
+
+    fun isOverdue(value: String, today: LocalDate = LocalDate.now()): Boolean =
+        parse(value)?.isBefore(today) ?: false
 }

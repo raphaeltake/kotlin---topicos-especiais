@@ -107,7 +107,10 @@ class NavigationTest {
                 onView(withId(R.id.etDueDate)).check { view, error ->
                     if (error != null) throw error
                     val field = view as android.widget.EditText
-                    assertNotNull(field.error)
+                    val layout = generateSequence(field.parent) { it.parent }
+                        .filterIsInstance<com.google.android.material.textfield.TextInputLayout>()
+                        .first()
+                    assertNotNull(layout.error)
                     field.setText(java.time.LocalDate.now().format(DueDates.formatter))
                 }
                 onView(withId(R.id.btnSaveTask)).perform(click())

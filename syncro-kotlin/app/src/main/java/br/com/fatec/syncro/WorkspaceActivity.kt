@@ -2,15 +2,19 @@ package br.com.fatec.syncro
 
 import android.content.Intent
 import android.app.DatePickerDialog
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputLayout
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -20,6 +24,7 @@ open class WorkspaceActivity : AppCompatActivity() {
     private val screen get() = intent.getStringExtra(Navigation.SCREEN) ?: initialScreen
     private val team get() = Workspace.team(intent.getStringExtra(Navigation.TEAM))
     private val task get() = team?.tasks?.firstOrNull { it.id == intent.getStringExtra(Navigation.TASK) }
+    private val returnToCaller get() = intent.getBooleanExtra(Navigation.RETURN_TO_CALLER, false)
     private var activeDialog: androidx.appcompat.app.AlertDialog? = null
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge() }
     override fun onResume() { super.onResume(); render() }
@@ -48,7 +53,11 @@ open class WorkspaceActivity : AppCompatActivity() {
         Navigation.toolbar(this, current?.id)
         when (screen) {
             "join" -> bindJoin()
-            "success" -> click(R.id.btnContinue) { Navigation.open(this, "team", current!!.id); finish() }
+            "success" -> click(R.id.btnContinue) {
+                // Convite feito a partir de "Gerenciar membros": volta para lá.
+                if (!returnToCaller) Navigation.open(this, "team", current!!.id)
+                finish()
+            }
             "notifications" -> bindNotifications()
             "members" -> bindMembers()
             "history" -> bindTasks(true)
@@ -63,6 +72,7 @@ open class WorkspaceActivity : AppCompatActivity() {
     private fun text(id: Int, value: String) { findViewById<TextView>(id)?.text = value }
     private fun go(screen: String, taskId: String? = null) = Navigation.open(this, screen, team?.id, taskId)
     private fun message(value: String) = Toast.makeText(this, value, Toast.LENGTH_SHORT).show()
+    private fun color(id: Int) = ContextCompat.getColor(this, id)
     private fun dialog(layout: Int, bind: (View, androidx.appcompat.app.AlertDialog) -> Unit) {
         activeDialog?.dismiss()
         val view = layoutInflater.inflate(layout, null)
@@ -76,15 +86,63 @@ open class WorkspaceActivity : AppCompatActivity() {
     private fun confirm(layout: Int, button: Int, action: () -> Unit) = dialog(layout) { view, dialog ->
         view.findViewById<View>(button).setOnClickListener { dialog.dismiss(); action() }
     }
+
+    /**
+     * Exibe o erro no TextInputLayout do campo (mesmo padrão das telas de login,
+     * cadastro e perfil) em vez do balão padrão do EditText.
+     */
+    private fun EditText.showError(message: String?) {
+        var parent = parent
+        while (parent != null && parent !is TextInputLayout) parent = parent.parent
+        val layout = parent as? TextInputLayout
+        if (layout != null) layout.error = message else error = message
+    }
+
+    private fun EditText.clearErrorOnChange() = doAfterTextChanged { showError(null) }
+
+    /** Cores, fundo do card e rótulo de status usados igualmente na lista e nos detalhes. */
+    private data class StatusStyle(val label: String, val textColor: Int, val badgeColor: Int, val card: Int)
+
+    private fun statusStyle(item: Workspace.Task): StatusStyle {
+        val finished = item.status == Workspace.Status.FINISHED
+        val overdue = !finished && DueDates.isOverdue(item.date)
+        val urgent = overdue || (!finished && DueDates.isDueSoon(item.date))
+        val label = getString(when {
+            overdue -> R.string.screen_overdue
+            item.status == Workspace.Status.PENDING -> R.string.screen_pending
+            item.status == Workspace.Status.IN_PROGRESS -> R.string.screen_in_progress
+            else -> R.string.screen_finished
+        })
+        return when {
+            urgent -> StatusStyle(label, R.color.status_red, R.color.status_red_bg, R.drawable.bg_task_card_red)
+            item.status == Workspace.Status.PENDING ->
+                StatusStyle(label, R.color.status_green, R.color.status_green_bg, R.drawable.bg_task_card_green)
+            item.status == Workspace.Status.IN_PROGRESS ->
+                StatusStyle(label, R.color.status_yellow, R.color.status_yellow_bg, R.drawable.bg_task_card_yellow)
+            else -> StatusStyle(label, R.color.blue, R.color.status_blue_bg, R.drawable.bg_task_card_blue)
+        }
+    }
+
+    private fun applyStatus(badge: TextView, style: StatusStyle) {
+        badge.text = style.label
+        badge.setTextColor(color(style.textColor))
+        badge.backgroundTintList = ContextCompat.getColorStateList(this, style.badgeColor)
+    }
+
+    private fun responsiblesText(item: Workspace.Task) =
+        item.responsibles.ifBlank { getString(R.string.screen_no_responsibles) }
+
     private fun bindJoin() {
         val inputLayout = findViewById<br.com.fatec.syncro.ui.SyncroTextInput>(R.id.teamCodeInputLayout)
         val input = inputLayout.input
         input.id = R.id.etTeamCode
+        input.doAfterTextChanged { inputLayout.error = null }
         click(R.id.btnJoinTeam) {
             val code = input.text.toString().trim()
             val match = Workspace.teams.firstOrNull { it.code.equals(code, true) }
             if (match == null) {
-                input.error = if (code.isEmpty()) "Informe o código da equipe" else "Equipe não encontrada neste protótipo local"
+                inputLayout.error = getString(if (code.isEmpty()) R.string.screen_team_code_required else R.string.screen_team_not_found)
+                input.requestFocus()
                 return@click
             }
             Navigation.open(this, "team", match.id); finish()
@@ -97,10 +155,21 @@ open class WorkspaceActivity : AppCompatActivity() {
         Workspace.hasUnreadNotifications = false
         Navigation.toolbar(this, team?.id)
         val current = team ?: Workspace.teams.firstOrNull()
+        val teamNotifications = listOf(R.id.tvNotification1, R.id.tvNotification2, R.id.tvNotification3, R.id.tvNotification4)
+        if (current == null) {
+            teamNotifications.forEach { (findViewById<View>(it).parent as View).visibility = View.GONE }
+        } else {
+            val newestMember = current.members.lastOrNull()?.name ?: getString(R.string.screen_member_name)
+            text(R.id.tvNotification1, getString(R.string.screen_notification_new_task, current.name))
+            text(R.id.tvNotification2, getString(R.string.screen_notification_member_joined, newestMember, current.name))
+            text(R.id.tvNotification3, getString(R.string.screen_notification_join_request, current.name))
+            text(R.id.tvNotification4, getString(R.string.screen_notification_invite_accepted, current.name))
+        }
+        text(R.id.tvNotification5, getString(R.string.screen_notification_invited, getString(R.string.screen_invited_team_name)))
         (findViewById<View>(R.id.tvNotification5).parent as View).visibility = if (Workspace.invitationPending) View.VISIBLE else View.GONE
-        listOf(R.id.tvNotification1, R.id.tvNotification2, R.id.tvNotification3, R.id.tvNotification4).forEachIndexed { index, id ->
+        teamNotifications.forEachIndexed { index, id ->
             click(id) {
-                if (current == null) { message("Nenhuma equipe disponível"); return@click }
+                if (current == null) { message(getString(R.string.screen_no_team_available)); return@click }
                 val firstTask = current.tasks.firstOrNull()
                 if (index == 0 && firstTask != null) Navigation.open(this, "task", current.id, firstTask.id)
                 else Navigation.open(this, if (current.admin && index in 1..2) "members" else "team", current.id)
@@ -108,20 +177,26 @@ open class WorkspaceActivity : AppCompatActivity() {
         }
         click(R.id.btnAcceptInvite) {
             Workspace.invitationPending = false
-            val joined = Workspace.Team(name = "Equipe convidada", admin = false)
+            val joined = Workspace.Team(
+                name = getString(R.string.screen_invited_team_name),
+                description = getString(R.string.screen_invited_team_description),
+                admin = false,
+                tasks = mutableListOf(),
+                members = mutableListOf(Workspace.Member(Workspace.profile.name, "Membro"))
+            )
             Workspace.teams.add(joined); Navigation.open(this, "team", joined.id); finish()
         }
         click(R.id.btnDeclineInvite) {
             Workspace.invitationPending = false
             (findViewById<View>(R.id.tvNotification5).parent as View).visibility = View.GONE
-            message("Convite recusado localmente")
+            message(getString(R.string.screen_invite_declined))
         }
     }
     private fun bindTeam() {
         val current = team!!
-        text(R.id.tvTeamName, current.name); text(R.id.tvTeamDescription, current.description)
+        text(R.id.tvTeamName, current.name)
         findViewById<TextView>(R.id.tvTeamDescription)?.let { Navigation.teamDescription(this, it, current.description) }
-        text(R.id.tvMemberCountBadge, "membros: ${current.members.size}"); text(R.id.tvMemberCount, "membros: ${current.members.size}")
+        text(R.id.tvMemberCountBadge, Navigation.membersCount(this, current.members.size))
         text(R.id.tvTasksTabCount, current.tasks.count { it.status != Workspace.Status.FINISHED }.toString())
         text(R.id.tvMembersTabCount, current.members.size.toString())
         updateTeamCounters()
@@ -155,13 +230,13 @@ open class WorkspaceActivity : AppCompatActivity() {
         team!!.members.forEach { member ->
             val card = layoutInflater.inflate(R.layout.item_member_card, list, false)
             card.findViewById<TextView>(R.id.tvMemberCardName).text = member.name
-            card.findViewById<TextView>(R.id.tvMemberCardRole).text = "Papel: ${member.role}"
+            card.findViewById<TextView>(R.id.tvMemberCardRole).text = getString(R.string.screen_role_format, member.role)
             list.addView(card)
         }
     }
 
     private fun showTeamPanel(showMembers: Boolean) {
-        text(R.id.tvTeamSectionTitle, if (showMembers) "Membros" else "Tarefas")
+        text(R.id.tvTeamSectionTitle, getString(if (showMembers) R.string.screen_members else R.string.screen_tasks))
         findViewById<View>(R.id.membersPanel)?.visibility = if (showMembers) View.VISIBLE else View.GONE
         findViewById<View>(R.id.btnAddTask)?.visibility =
             if (showMembers || team?.admin != true) View.GONE else View.VISIBLE
@@ -173,10 +248,15 @@ open class WorkspaceActivity : AppCompatActivity() {
                 if (child.tag == "task_item") child.visibility = if (showMembers) View.GONE else View.VISIBLE
             }
         }
-        findViewById<TextView>(R.id.tvTasksTabLabel)?.setTextColor(androidx.core.content.ContextCompat.getColor(this, if (showMembers) R.color.black else R.color.blue))
-        findViewById<TextView>(R.id.tvMembersTabLabel)?.setTextColor(androidx.core.content.ContextCompat.getColor(this, if (showMembers) R.color.blue else R.color.black))
-        findViewById<TextView>(R.id.tvTasksTabCount)?.setTextColor(androidx.core.content.ContextCompat.getColor(this, if (showMembers) R.color.black else R.color.blue))
-        findViewById<TextView>(R.id.tvMembersTabCount)?.setTextColor(androidx.core.content.ContextCompat.getColor(this, if (showMembers) R.color.blue else R.color.black))
+        val selected = color(R.color.blue)
+        val unselected = color(R.color.black)
+        listOf(R.id.tvTasksTabLabel to !showMembers, R.id.tvMembersTabLabel to showMembers,
+            R.id.tvTasksTabCount to !showMembers, R.id.tvMembersTabCount to showMembers).forEach { (id, active) ->
+            findViewById<TextView>(id)?.apply {
+                setTextColor(if (active) selected else unselected)
+                setTypeface(null, if (active) Typeface.BOLD else Typeface.NORMAL)
+            }
+        }
         findViewById<View>(R.id.tasksTab)?.setBackgroundResource(if (showMembers) android.R.color.transparent else R.drawable.bg_card)
         findViewById<View>(R.id.membersTab)?.setBackgroundResource(if (showMembers) R.drawable.bg_card else android.R.color.transparent)
     }
@@ -194,10 +274,10 @@ open class WorkspaceActivity : AppCompatActivity() {
     }
     private fun editTeam() = dialog(R.layout.dialog_edit_team) { view, dialog ->
         val current = team!!
-        val name = view.findViewById<EditText>(R.id.etTeamName).apply { setText(current.name) }
+        val name = view.findViewById<EditText>(R.id.etTeamName).apply { setText(current.name); clearErrorOnChange() }
         val description = view.findViewById<EditText>(R.id.etTeamDescription).apply { setText(current.description) }
         view.findViewById<View>(R.id.btnSaveTeam).setOnClickListener {
-            if (name.text.isBlank()) { name.error = "Informe o nome da equipe"; return@setOnClickListener }
+            if (name.text.isBlank()) { name.showError(getString(R.string.team_name_required_error)); return@setOnClickListener }
             current.name = name.text.toString().trim(); current.description = description.text.toString().trim()
             dialog.dismiss(); render()
         }
@@ -213,72 +293,32 @@ open class WorkspaceActivity : AppCompatActivity() {
             .filter { (it.status == Workspace.Status.FINISHED) == history }
             .sortedBy { DueDates.parse(it.date) ?: LocalDate.MAX }
         tasks.forEachIndexed { index, item ->
-            val dueSoon = item.status != Workspace.Status.FINISHED && DueDates.isDueSoon(item.date)
+            val style = statusStyle(item)
             val row = layoutInflater.inflate(R.layout.item_flow_task, parent, false)
             row.tag = "task_item"
             row.findViewById<TextView>(R.id.tvTaskTitle).text = item.title
-            row.findViewById<TextView>(R.id.tvResponsibles).text = item.responsibles
+            row.findViewById<TextView>(R.id.tvResponsibles).text = responsiblesText(item)
             row.findViewById<TextView>(R.id.tvDueDate).text = item.date
-            row.findViewById<TextView>(R.id.tvStatusBadge).text = when (item.status) {
-                Workspace.Status.PENDING -> "Pendente"
-                Workspace.Status.IN_PROGRESS -> "Em andamento"
-                Workspace.Status.FINISHED -> "Finalizada"
-            }
-            row.setBackgroundResource(when {
-                dueSoon -> R.drawable.bg_task_card_red
-                item.status == Workspace.Status.PENDING -> R.drawable.bg_task_card_green
-                item.status == Workspace.Status.IN_PROGRESS -> R.drawable.bg_task_card_yellow
-                else -> R.drawable.bg_task_card_blue
-            })
-            row.findViewById<TextView>(R.id.tvStatusBadge).backgroundTintList =
-                androidx.core.content.ContextCompat.getColorStateList(this, when {
-                    dueSoon -> R.color.status_red_bg
-                    item.status == Workspace.Status.PENDING -> R.color.status_green_bg
-                    item.status == Workspace.Status.IN_PROGRESS -> R.color.status_yellow_bg
-                    else -> R.color.status_blue_bg
-                })
-            row.findViewById<TextView>(R.id.tvStatusBadge).setTextColor(androidx.core.content.ContextCompat.getColor(this, when {
-                dueSoon -> R.color.status_red
-                item.status == Workspace.Status.PENDING -> R.color.status_green
-                item.status == Workspace.Status.IN_PROGRESS -> R.color.status_yellow
-                else -> R.color.blue
-            }))
+            row.setBackgroundResource(style.card)
+            applyStatus(row.findViewById(R.id.tvStatusBadge), style)
             row.setOnClickListener { go("task", item.id) }; parent.addView(row, insertion + index)
         }
-        if (tasks.isEmpty()) parent.addView(TextView(this).apply {
-            tag = "task_item"
-            text = if (history) "Nenhuma tarefa finalizada" else "Nenhuma tarefa ativa"
-            setPadding(0, 24, 0, 24)
-        }, insertion)
+        if (tasks.isEmpty()) parent.addView(
+            emptyState(this, getString(if (history) R.string.screen_no_finished_tasks else R.string.screen_no_active_tasks))
+                .apply { tag = "task_item" },
+            insertion
+        )
     }
     private fun bindTask() {
         val item = task!!
-        val dueSoon = item.status != Workspace.Status.FINISHED && DueDates.isDueSoon(item.date)
-        val statusBadge = findViewById<TextView>(R.id.tvStatusBadge)
-        statusBadge.text = getString(when (item.status) {
-            Workspace.Status.PENDING -> R.string.screen_pending
-            Workspace.Status.IN_PROGRESS -> R.string.screen_in_progress
-            Workspace.Status.FINISHED -> R.string.screen_finished
-        })
-        statusBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, when {
-            dueSoon -> R.color.status_red
-            item.status == Workspace.Status.PENDING -> R.color.status_green
-            item.status == Workspace.Status.IN_PROGRESS -> R.color.status_yellow
-            else -> R.color.blue
-        }))
-        statusBadge.backgroundTintList = androidx.core.content.ContextCompat.getColorStateList(this, when {
-            dueSoon -> R.color.status_red_bg
-            item.status == Workspace.Status.PENDING -> R.color.status_green_bg
-            item.status == Workspace.Status.IN_PROGRESS -> R.color.status_yellow_bg
-            else -> R.color.status_blue_bg
-        })
+        applyStatus(findViewById(R.id.tvStatusBadge), statusStyle(item))
         if (item.status != Workspace.Status.FINISHED) {
-            val label = getString(if (item.status == Workspace.Status.PENDING) R.string.screen_start_task else R.string.screen_finish_task)
-            val action = findViewById<View>(R.id.btnTaskAction)
-            if (action is TextView) action.text = label else text(R.id.tvTaskActionLabel, label)
+            val pending = item.status == Workspace.Status.PENDING
+            text(R.id.tvTaskActionLabel, getString(if (pending) R.string.screen_start_task else R.string.screen_finish_task))
+            findViewById<ImageView>(R.id.ivTaskActionIcon)?.setImageResource(if (pending) R.drawable.ic_play else R.drawable.ic_check_circle)
         }
         text(R.id.tvTaskTitle, item.title); text(R.id.tvDescription, item.description)
-        text(R.id.tvResponsibles, item.responsibles); text(R.id.tvDueDate, item.date)
+        text(R.id.tvResponsibles, responsiblesText(item)); text(R.id.tvDueDate, item.date)
         click(R.id.btnTaskAction) { item.advance(); render() }
         findViewById<View>(R.id.btnEditTask)?.visibility = if (team!!.admin) View.VISIBLE else View.GONE
         findViewById<View>(R.id.btnDeleteTask)?.visibility = if (team!!.admin) View.VISIBLE else View.GONE
@@ -294,8 +334,8 @@ open class WorkspaceActivity : AppCompatActivity() {
         bindComments()
     }
     private fun editTask(item: Workspace.Task?) = dialog(if (item == null) R.layout.dialog_add_task else R.layout.dialog_edit_task) { view, dialog ->
-        val title = view.findViewById<EditText>(R.id.etTaskTitle).apply { setText(item?.title.orEmpty()) }
-        val description = view.findViewById<EditText>(R.id.etDescription).apply { setText(item?.description.orEmpty()) }
+        val title = view.findViewById<EditText>(R.id.etTaskTitle).apply { setText(item?.title.orEmpty()); clearErrorOnChange() }
+        val description = view.findViewById<EditText>(R.id.etDescription).apply { setText(item?.description.orEmpty()); clearErrorOnChange() }
         val responsible = view.findViewById<EditText>(R.id.etResponsibles).apply { setText(item?.responsibles.orEmpty()) }
         val date = view.findViewById<EditText>(R.id.etDueDate).apply {
             setText(item?.date.orEmpty())
@@ -304,10 +344,10 @@ open class WorkspaceActivity : AppCompatActivity() {
             setOnClickListener { showDueDatePicker(this) }
         }
         view.findViewById<View>(if (item == null) R.id.btnAddTask else R.id.btnSaveTask).setOnClickListener {
-            if (title.text.isBlank()) { title.error = "Informe o título"; return@setOnClickListener }
-            if (description.text.isBlank()) { description.error = "Informe a descrição"; return@setOnClickListener }
-            if (!DueDates.isValid(date.text.toString().trim())) {
-                date.error = "Selecione uma data igual ou posterior a hoje"
+            title.showError(if (title.text.isBlank()) getString(R.string.screen_task_title_required) else null)
+            description.showError(if (description.text.isBlank()) getString(R.string.screen_description_required) else null)
+            date.showError(if (DueDates.isValid(date.text.toString().trim())) null else getString(R.string.screen_due_date_invalid))
+            if (title.text.isBlank() || description.text.isBlank() || !DueDates.isValid(date.text.toString().trim())) {
                 return@setOnClickListener
             }
             val target = item ?: Workspace.Task(comments = mutableListOf())
@@ -330,7 +370,7 @@ open class WorkspaceActivity : AppCompatActivity() {
             this,
             { _, year, month, day ->
                 field.setText(LocalDate.of(year, month + 1, day).format(DueDates.formatter))
-                field.error = null
+                field.showError(null)
             },
             selected.year,
             selected.monthValue - 1,
@@ -340,51 +380,47 @@ open class WorkspaceActivity : AppCompatActivity() {
         }.show()
     }
     private fun bindComments() {
-        val names = listOf(R.id.tvCommenterName, R.id.tvCommenterName1, R.id.tvCommenterName2)
-        val blocks = names.mapNotNull { findViewById<View>(it)?.parent as? ViewGroup }
-            .map { if (it is LinearLayout && it.orientation == LinearLayout.HORIZONTAL) it.parent as ViewGroup else it }
-        val parent = blocks.first().parent as ViewGroup
-        val insertion = parent.indexOfChild(blocks.first())
-        blocks.forEach(parent::removeView)
+        // O comentário de exemplo do layout marca onde a lista é inserida.
+        val template = findViewById<View>(R.id.tvCommenterName).parent as View
+        val parent = template.parent as ViewGroup
+        val insertion = parent.indexOfChild(template)
+        parent.removeView(template)
+        val finished = task!!.status == Workspace.Status.FINISHED
         task!!.comments.forEachIndexed { index, comment ->
             val row = layoutInflater.inflate(R.layout.item_flow_comment, parent, false)
+            row.findViewById<TextView>(R.id.tvCommentAuthor).text = comment.author
             row.findViewById<TextView>(R.id.tvCommentText1).text = comment.text
-            row.isFocusable = true
             row.setOnClickListener { commentHistory(comment) }
             val edited = row.findViewById<TextView>(R.id.btnCommentHistory)
             edited.visibility = if (comment.history.isEmpty()) View.GONE else View.VISIBLE
-            edited.setOnClickListener { commentHistory(comment) }
             val edit = row.findViewById<View>(R.id.btnEditComment1)
-            edit.visibility = if (task!!.status == Workspace.Status.FINISHED) View.GONE else View.VISIBLE
+            edit.visibility = if (finished) View.GONE else View.VISIBLE
             edit.setOnClickListener {
                 if (team!!.admin) {
                     PopupMenu(this, edit).apply {
-                        menu.add("Editar comentário").setOnMenuItemClickListener { editComment(comment); true }
-                        menu.add("Remover comentário").setOnMenuItemClickListener {
-                            confirm(R.layout.dialog_remove_comment, R.id.btnConfirmRemoveComment) { task!!.comments.remove(comment); render() }
-                            true
-                        }
+                        menu.add(getString(R.string.screen_edit_comment)).setOnMenuItemClickListener { editComment(comment); true }
+                        menu.add(getString(R.string.screen_delete_comment)).setOnMenuItemClickListener { removeComment(comment); true }
                         show()
                     }
                 } else editComment(comment)
             }
-            if (team!!.admin && task!!.status != Workspace.Status.FINISHED) row.setOnLongClickListener {
-                confirm(R.layout.dialog_remove_comment, R.id.btnConfirmRemoveComment) { task!!.comments.remove(comment); render() }; true
-            }
+            if (team!!.admin && !finished) row.setOnLongClickListener { removeComment(comment); true }
             parent.addView(row, insertion + index)
         }
+        if (task!!.comments.isEmpty()) parent.addView(emptyState(this, getString(R.string.screen_no_comments)), insertion)
     }
+    private fun removeComment(comment: Workspace.Comment) =
+        confirm(R.layout.dialog_remove_comment, R.id.btnConfirmRemoveComment) { task!!.comments.remove(comment); render() }
+
     private fun editComment(comment: Workspace.Comment?) = dialog(if (comment == null) R.layout.dialog_create_comment else R.layout.dialog_edit_comment) { view, dialog ->
-        val input = view.findViewById<EditText>(R.id.etComment).apply { setText(comment?.text.orEmpty()) }
+        val input = view.findViewById<EditText>(R.id.etComment).apply { setText(comment?.text.orEmpty()); clearErrorOnChange() }
         view.findViewById<View>(if (comment == null) R.id.btnSubmitComment else R.id.btnSaveComment).setOnClickListener {
-            if (input.text.isBlank()) { input.error = "Escreva um comentário"; return@setOnClickListener }
-            if (comment == null) task!!.comments.add(Workspace.Comment(input.text.toString()))
+            if (input.text.isBlank()) { input.showError(getString(R.string.screen_comment_required)); return@setOnClickListener }
+            if (comment == null) task!!.comments.add(Workspace.Comment(input.text.toString(), author = Workspace.profile.name))
             else if (comment.text != input.text.toString()) { comment.history.add(comment.text); comment.text = input.text.toString() }
             dialog.dismiss(); render()
         }
-        view.findViewById<View>(R.id.btnDeleteComment)?.setOnClickListener {
-            confirm(R.layout.dialog_delete_comment, R.id.btnConfirmDeleteComment) { task!!.comments.remove(comment); render() }
-        }
+        if (comment != null) view.findViewById<View>(R.id.btnDeleteComment)?.setOnClickListener { removeComment(comment) }
     }
     private fun commentHistory(comment: Workspace.Comment) = dialog(R.layout.dialog_comment_history) { view, dialog ->
         val versions = view.findViewById<LinearLayout>(R.id.commentHistoryVersions)
@@ -406,7 +442,13 @@ open class WorkspaceActivity : AppCompatActivity() {
     }
     private fun bindMembers() {
         if (!team!!.admin) { finish(); return }
-        click(R.id.btnAddMember) { startActivity(Intent(this, InviteTeamActivity::class.java).putExtra(Navigation.TEAM, team!!.id)) }
+        click(R.id.btnAddMember) {
+            startActivity(
+                Intent(this, InviteTeamActivity::class.java)
+                    .putExtra(Navigation.TEAM, team!!.id)
+                    .putExtra(Navigation.RETURN_TO_CALLER, true)
+            )
+        }
         click(R.id.btnDeleteTeam) { confirm(R.layout.dialog_delete_team, R.id.btnConfirmDeleteTeam) { Workspace.teams.remove(team); Navigation.home(this) } }
         bindManagedMembers()
     }
@@ -425,7 +467,7 @@ open class WorkspaceActivity : AppCompatActivity() {
             val removeButton = card.findViewById<View>(R.id.btnRemoveManagedMember)
             val isCreator = member.role == "Criador(a)"
             roleLabel.visibility = if (isCreator) View.VISIBLE else View.GONE
-            roleLabel.text = "Papel: ${member.role}"
+            roleLabel.text = getString(R.string.screen_role_format, member.role)
             roleSpinner.visibility = if (isCreator) View.GONE else View.VISIBLE
             removeButton.visibility = if (isCreator) View.GONE else View.VISIBLE
             if (!isCreator) {
@@ -466,12 +508,18 @@ open class WorkspaceActivity : AppCompatActivity() {
         email.input.setText(Workspace.profile.email)
         password.input.setText("")
         confirm.input.setText("")
+        listOf(name, email, confirm).forEach { field -> field.input.doAfterTextChanged { field.error = null } }
+        password.input.doAfterTextChanged { password.error = null; confirm.error = null }
         click(R.id.btnSaveProfile) {
             val newName = name.input.text.toString().trim()
             val newEmail = email.input.text.toString().trim()
             val newPassword = password.input.text.toString()
             name.error = if (newName.isBlank()) getString(R.string.name_required_error) else null
-            email.error = if (!android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) getString(R.string.email_invalid_error) else null
+            email.error = when {
+                newEmail.isBlank() -> getString(R.string.email_required_error)
+                !android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches() -> getString(R.string.email_invalid_error)
+                else -> null
+            }
             password.error = when {
                 newPassword.isNotEmpty() && newPassword.isBlank() ->
                     getString(R.string.password_required_error)

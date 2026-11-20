@@ -15,18 +15,11 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/tvTitle"
-                style="@style/Screen.Section"
-                android:text="@string/screen_new_comment"
-                android:layout_width="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tvTitle"
+            style="@style/Screen.Title"
+            android:text="@string/screen_new_comment"
+            android:layout_marginBottom="16dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.Syncro.TextInput"

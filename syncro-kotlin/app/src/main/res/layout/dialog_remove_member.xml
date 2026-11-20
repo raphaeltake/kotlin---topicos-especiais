@@ -25,7 +25,7 @@
             android:id="@+id/tvMemberName"
             style="@style/Screen.Body"
             android:text="@string/screen_member_name"
-            android:gravity="center" />
+            android:textColor="@color/black" />
 
         <LinearLayout
             android:layout_width="match_parent"

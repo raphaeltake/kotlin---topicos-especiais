@@ -75,7 +75,7 @@
 
         <item name="backgroundTint">@color/blue</item>
 
-        <item name="cornerRadius">8dp</item>
+        <item name="cornerRadius">12dp</item>
 
         <item name="iconTint">@color/white</item>
 

@@ -15,6 +15,7 @@ import br.com.fatec.syncro.ui.SyncroTextInput
 class CreateTeamActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
+        // Atualiza o sino de notificações (e o botão voltar) ao retornar à tela.
         Navigation.toolbar(this)
     }
 
@@ -22,7 +23,6 @@ class CreateTeamActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_create_team)
-        Navigation.toolbar(this)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.createTeamRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -33,10 +33,6 @@ class CreateTeamActivity : AppCompatActivity() {
         val teamNameInputLayout = findViewById<SyncroTextInput>(R.id.teamNameInputLayout)
         val teamNameInput = teamNameInputLayout.input
         val createTeamButton = findViewById<Button>(R.id.btnCreateTeam)
-
-        findViewById<android.view.View>(R.id.btnBack).setOnClickListener {
-            finish()
-        }
 
         teamNameInput.doAfterTextChanged {
             teamNameInputLayout.error = null
@@ -51,7 +47,12 @@ class CreateTeamActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val team = Workspace.Team(name = teamName, tasks = mutableListOf(), members = mutableListOf(Workspace.Member(Workspace.profile.name, "Criador(a)")))
+            val team = Workspace.Team(
+                name = teamName,
+                description = "",
+                tasks = mutableListOf(),
+                members = mutableListOf(Workspace.Member(Workspace.profile.name, "Criador(a)"))
+            )
             Workspace.teams.add(team)
             startActivity(Intent(this, InviteTeamActivity::class.java).putExtra(Navigation.TEAM, team.id))
             finish()

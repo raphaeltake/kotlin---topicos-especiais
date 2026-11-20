@@ -21,12 +21,12 @@
     <string name="email_required_error">Informe seu e-mail.</string>
     <string name="email_invalid_error">Informe um e-mail válido.</string>
     <string name="logging_in_as">Entrando como:</string>
-    <string name="password_label">Senha:</string>
+    <string name="password_label">Senha</string>
     <string name="password_hint">Senha</string>
     <string name="password_required_error">Informe sua senha.</string>
     <string name="toggle_password_visibility">Mostrar ou ocultar senha</string>
-    <string name="name_label">Nome:</string>
-    <string name="confirm_password_label">Confirmar senha:</string>
+    <string name="name_label">Nome</string>
+    <string name="confirm_password_label">Confirmar senha</string>
     <string name="register">Cadastrar</string>
     <string name="registering">Cadastrando…</string>
     <string name="name_required_error">Informe seu nome.</string>
@@ -46,7 +46,15 @@
     <string name="profile_updated">Perfil atualizado</string>
     <string name="logout">Sair</string>
     <string name="create_team_title">Criar equipe</string>
-    <string name="team_name_label">Nome da equipe:</string>
+    <string name="team_name_label">Nome da equipe</string>
     <string name="team_name_required_error">Informe o nome da equipe.</string>
     <string name="create_team_button">Criar equipe</string>
+    <string name="create_account">Criar conta</string>
+    <string name="join_team_button">Entrar em equipe</string>
+    <string name="your_teams">Suas equipes</string>
+    <string name="continue_without_invite">Continuar sem convidar</string>
+    <string name="profile_title">Gerenciar perfil</string>
+    <string name="profile_password_help">Para alterar a senha, preencha os dois campos abaixo.</string>
+    <string name="profile_new_password_hint">Nova senha (opcional)</string>
+    <string name="profile_confirm_password_hint">Confirmar nova senha</string>
 </resources>

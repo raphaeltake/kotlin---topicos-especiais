@@ -5,14 +5,13 @@
     android:id="@+id/teamsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8FAFD"
-    tools:context=".MainActivity">
+    android:background="@color/bg_light"
+    tools:context=".TeamsActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="0dp"
         android:layout_height="@dimen/top_bar_height"
-        android:layout_marginTop="8dp"
         android:background="@color/white"
         android:paddingStart="@dimen/top_bar_horizontal_padding"
         android:paddingEnd="@dimen/top_bar_horizontal_padding"
@@ -36,13 +35,13 @@
             android:layout_width="@dimen/top_bar_icon_touch_size"
             android:layout_height="@dimen/top_bar_icon_touch_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Perfil"
+            android:contentDescription="@string/profile"
             android:padding="@dimen/top_bar_icon_padding"
-            android:src="@drawable/ic_team_members"
+            android:src="@drawable/ic_team_member"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnNotifications"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:tint="@color/black" />
 
         <ImageButton
             android:id="@+id/btnNotifications"
@@ -55,31 +54,22 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnLogout"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:tint="@color/black" />
 
         <ImageButton
             android:id="@+id/btnLogout"
             android:layout_width="@dimen/top_bar_icon_touch_size"
             android:layout_height="@dimen/top_bar_icon_touch_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Sair"
+            android:contentDescription="@string/logout"
             android:padding="@dimen/top_bar_icon_padding"
             android:src="@drawable/ic_logout"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:tint="@color/black" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <View
-        android:id="@+id/headerDivider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#E6E9F0"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header" />
 
     <ScrollView
         android:id="@+id/teamsScroll"
@@ -91,7 +81,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerDivider">
+        app:layout_constraintTop_toBottomOf="@id/header">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -117,7 +107,7 @@
                     android:gravity="center"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    android:text="Criar equipe"
+                    android:text="@string/create_team_button"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textSize="14sp"
@@ -139,7 +129,7 @@
                     android:gravity="center"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    android:text="Entrar em equipe"
+                    android:text="@string/join_team_button"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textSize="14sp"
@@ -158,9 +148,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Suas equipes"
-                android:textColor="#4B5268"
-                android:textSize="13sp"
+                android:text="@string/your_teams"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <include

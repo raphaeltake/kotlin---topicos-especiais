@@ -30,7 +30,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:tint="@color/black" />
 
         <ImageButton
             android:id="@+id/btnNotifications"
@@ -43,18 +43,9 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:tint="@color/black" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <View
-        android:id="@+id/headerDivider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#E6E9F0"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/createTeamHeader" />
 
     <TextView
         android:id="@+id/tvCreateTeamTitle"
@@ -62,12 +53,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="@string/create_team_title"
-        android:textColor="#1E293B"
-        android:textSize="24sp"
+        android:textColor="@color/black"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerDivider" />
+        app:layout_constraintTop_toBottomOf="@id/createTeamHeader" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/createTeamCard"
@@ -76,7 +67,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerDivider"
+        app:layout_constraintTop_toBottomOf="@id/createTeamHeader"
         app:layout_constraintVertical_bias="0.42">
 
         <br.com.fatec.syncro.ui.SyncroTextInput
@@ -94,7 +85,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCreateTeam"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="52dp"
             android:layout_marginTop="28dp"
             android:minWidth="180dp"
             android:text="@string/create_team_button"
@@ -102,7 +93,7 @@
             android:textColor="@color/white"
             android:textStyle="bold"
             app:backgroundTint="@color/blue"
-            app:cornerRadius="8dp"
+            app:cornerRadius="12dp"
             app:icon="@drawable/ic_person_add"
             app:iconGravity="textStart"
             app:iconPadding="12dp"

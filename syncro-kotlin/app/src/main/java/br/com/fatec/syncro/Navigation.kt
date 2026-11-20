@@ -1,7 +1,9 @@
 package br.com.fatec.syncro
 
+import android.content.Context
 import android.content.Intent
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -9,13 +11,28 @@ object Navigation {
     const val SCREEN = "screen"
     const val TEAM = "team"
     const val TASK = "task"
-    fun open(activity: AppCompatActivity, screen: String, team: String? = null, task: String? = null) {
+    /** Quando verdadeiro, a tela volta para quem a abriu em vez de abrir a equipe novamente. */
+    const val RETURN_TO_CALLER = "return_to_caller"
+
+    fun open(
+        activity: AppCompatActivity,
+        screen: String,
+        team: String? = null,
+        task: String? = null,
+        returnToCaller: Boolean = false
+    ) {
         val target = when (screen) {
             "team" -> TeamDetailsActivity::class.java
             "task" -> TaskDetailsActivity::class.java
             else -> WorkspaceActivity::class.java
         }
-        activity.startActivity(Intent(activity, target).putExtra(SCREEN, screen).putExtra(TEAM, team).putExtra(TASK, task))
+        activity.startActivity(
+            Intent(activity, target)
+                .putExtra(SCREEN, screen)
+                .putExtra(TEAM, team)
+                .putExtra(TASK, task)
+                .putExtra(RETURN_TO_CALLER, returnToCaller)
+        )
     }
     fun home(activity: AppCompatActivity) {
         activity.startActivity(Intent(activity, TeamsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
@@ -32,14 +49,38 @@ object Navigation {
             }
         }
     }
-    fun teamDescription(activity: AppCompatActivity, label: android.widget.TextView, description: String) {
-        label.text = description
+
+    /** Texto exibido para a descrição da equipe, com alternativa quando estiver vazia. */
+    fun descriptionOrDefault(context: Context, description: String) =
+        description.ifBlank { context.getString(R.string.screen_no_description) }
+
+    fun membersCount(context: Context, count: Int) = quantity(
+        count,
+        context.getString(R.string.screen_member),
+        context.getString(R.string.screen_members_plural)
+    )
+
+    fun activeTasksCount(context: Context, count: Int) = quantity(
+        count,
+        context.getString(R.string.screen_active_task),
+        context.getString(R.string.screen_active_tasks)
+    )
+
+    private fun quantity(count: Int, singular: String, plural: String) =
+        "$count ${if (count == 1) singular else plural}"
+
+    fun teamDescription(activity: AppCompatActivity, label: TextView, description: String) {
+        val text = descriptionOrDefault(activity, description)
+        label.text = text
         label.maxLines = 5
         label.ellipsize = android.text.TextUtils.TruncateAt.END
         label.isFocusable = true
         label.setOnClickListener {
-            MaterialAlertDialogBuilder(activity).setTitle("Descrição da equipe")
-                .setMessage(description).setPositiveButton("Fechar", null).show()
+            val view = activity.layoutInflater.inflate(R.layout.dialog_team_description, null)
+            val dialog = MaterialAlertDialogBuilder(activity).setView(view).create()
+            view.findViewById<TextView>(R.id.tvDescription).text = text
+            view.findViewById<View>(R.id.btnClose).setOnClickListener { dialog.dismiss() }
+            dialog.show()
         }
     }
     fun logout(activity: AppCompatActivity) {
