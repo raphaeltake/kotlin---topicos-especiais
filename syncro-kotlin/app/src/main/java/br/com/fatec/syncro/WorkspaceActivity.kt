@@ -113,13 +113,14 @@ open class WorkspaceActivity : AppCompatActivity() {
             item.status == Workspace.Status.IN_PROGRESS -> R.string.screen_in_progress
             else -> R.string.screen_finished
         })
+        // O texto do selo usa o tom mais escuro de cada cor para manter o contraste legível.
         return when {
-            urgent -> StatusStyle(label, R.color.status_red, R.color.status_red_bg, R.drawable.bg_task_card_red)
+            urgent -> StatusStyle(label, R.color.status_red_text, R.color.status_red_bg, R.drawable.bg_task_card_red)
             item.status == Workspace.Status.PENDING ->
-                StatusStyle(label, R.color.status_green, R.color.status_green_bg, R.drawable.bg_task_card_green)
+                StatusStyle(label, R.color.status_green_text, R.color.status_green_bg, R.drawable.bg_task_card_green)
             item.status == Workspace.Status.IN_PROGRESS ->
-                StatusStyle(label, R.color.status_yellow, R.color.status_yellow_bg, R.drawable.bg_task_card_yellow)
-            else -> StatusStyle(label, R.color.blue, R.color.status_blue_bg, R.drawable.bg_task_card_blue)
+                StatusStyle(label, R.color.status_yellow_text, R.color.status_yellow_bg, R.drawable.bg_task_card_yellow)
+            else -> StatusStyle(label, R.color.blue_dark, R.color.blue_soft_strong, R.drawable.bg_task_card_blue)
         }
     }
 
@@ -155,9 +156,10 @@ open class WorkspaceActivity : AppCompatActivity() {
         Workspace.hasUnreadNotifications = false
         Navigation.toolbar(this, team?.id)
         val current = team ?: Workspace.teams.firstOrNull()
-        val teamNotifications = listOf(R.id.tvNotification1, R.id.tvNotification2, R.id.tvNotification3, R.id.tvNotification4)
+        val teamNotifications = listOf(R.id.notificationCard1, R.id.notificationCard2, R.id.notificationCard3, R.id.notificationCard4)
+        val inviteCard = findViewById<View>(R.id.notificationInviteCard)
         if (current == null) {
-            teamNotifications.forEach { (findViewById<View>(it).parent as View).visibility = View.GONE }
+            (teamNotifications + R.id.tvActivityLabel).forEach { findViewById<View>(it).visibility = View.GONE }
         } else {
             val newestMember = current.members.lastOrNull()?.name ?: getString(R.string.screen_member_name)
             text(R.id.tvNotification1, getString(R.string.screen_notification_new_task, current.name))
@@ -166,7 +168,7 @@ open class WorkspaceActivity : AppCompatActivity() {
             text(R.id.tvNotification4, getString(R.string.screen_notification_invite_accepted, current.name))
         }
         text(R.id.tvNotification5, getString(R.string.screen_notification_invited, getString(R.string.screen_invited_team_name)))
-        (findViewById<View>(R.id.tvNotification5).parent as View).visibility = if (Workspace.invitationPending) View.VISIBLE else View.GONE
+        inviteCard.visibility = if (Workspace.invitationPending) View.VISIBLE else View.GONE
         teamNotifications.forEachIndexed { index, id ->
             click(id) {
                 if (current == null) { message(getString(R.string.screen_no_team_available)); return@click }
@@ -188,7 +190,7 @@ open class WorkspaceActivity : AppCompatActivity() {
         }
         click(R.id.btnDeclineInvite) {
             Workspace.invitationPending = false
-            (findViewById<View>(R.id.tvNotification5).parent as View).visibility = View.GONE
+            inviteCard.visibility = View.GONE
             message(getString(R.string.screen_invite_declined))
         }
     }
@@ -229,6 +231,7 @@ open class WorkspaceActivity : AppCompatActivity() {
         list.removeAllViews()
         team!!.members.forEach { member ->
             val card = layoutInflater.inflate(R.layout.item_member_card, list, false)
+            card.findViewById<TextView>(R.id.tvMemberCardAvatar).text = Navigation.initials(member.name)
             card.findViewById<TextView>(R.id.tvMemberCardName).text = member.name
             card.findViewById<TextView>(R.id.tvMemberCardRole).text = getString(R.string.screen_role_format, member.role)
             list.addView(card)
@@ -249,7 +252,7 @@ open class WorkspaceActivity : AppCompatActivity() {
             }
         }
         val selected = color(R.color.blue)
-        val unselected = color(R.color.black)
+        val unselected = color(R.color.gray)
         listOf(R.id.tvTasksTabLabel to !showMembers, R.id.tvMembersTabLabel to showMembers,
             R.id.tvTasksTabCount to !showMembers, R.id.tvMembersTabCount to showMembers).forEach { (id, active) ->
             findViewById<TextView>(id)?.apply {
@@ -257,8 +260,8 @@ open class WorkspaceActivity : AppCompatActivity() {
                 setTypeface(null, if (active) Typeface.BOLD else Typeface.NORMAL)
             }
         }
-        findViewById<View>(R.id.tasksTab)?.setBackgroundResource(if (showMembers) android.R.color.transparent else R.drawable.bg_card)
-        findViewById<View>(R.id.membersTab)?.setBackgroundResource(if (showMembers) R.drawable.bg_card else android.R.color.transparent)
+        findViewById<View>(R.id.tasksTab)?.setBackgroundResource(if (showMembers) android.R.color.transparent else R.drawable.bg_segment_selected)
+        findViewById<View>(R.id.membersTab)?.setBackgroundResource(if (showMembers) R.drawable.bg_segment_selected else android.R.color.transparent)
     }
 
     private fun updateTeamCounters() {
@@ -269,7 +272,7 @@ open class WorkspaceActivity : AppCompatActivity() {
 
     private fun updateCounterBadge(id: Int, hasNewContent: Boolean) {
         findViewById<TextView>(id)?.apply {
-            setBackgroundResource(if (hasNewContent) R.drawable.bg_counter_new else android.R.color.transparent)
+            setBackgroundResource(if (hasNewContent) R.drawable.bg_counter_new else R.drawable.bg_counter)
         }
     }
     private fun editTeam() = dialog(R.layout.dialog_edit_team) { view, dialog ->
@@ -283,7 +286,8 @@ open class WorkspaceActivity : AppCompatActivity() {
         }
     }
     private fun bindTasks(history: Boolean) {
-        val ids = listOf(R.id.taskItem0, R.id.taskItem1, R.id.taskItem2, R.id.taskItem3)
+        // Cada tela tem um único modelo de tarefa (taskItem0 no histórico, taskItem1 na equipe).
+        val ids = listOf(R.id.taskItem0, R.id.taskItem1)
             .filter { findViewById<View>(it) != null }
         val template = findViewById<View>(ids.first())
         val parent = template.parent as ViewGroup
@@ -388,6 +392,7 @@ open class WorkspaceActivity : AppCompatActivity() {
         val finished = task!!.status == Workspace.Status.FINISHED
         task!!.comments.forEachIndexed { index, comment ->
             val row = layoutInflater.inflate(R.layout.item_flow_comment, parent, false)
+            row.findViewById<TextView>(R.id.tvCommentAvatar).text = Navigation.initials(comment.author)
             row.findViewById<TextView>(R.id.tvCommentAuthor).text = comment.author
             row.findViewById<TextView>(R.id.tvCommentText1).text = comment.text
             row.setOnClickListener { commentHistory(comment) }
@@ -428,14 +433,20 @@ open class WorkspaceActivity : AppCompatActivity() {
             if (index > 0) versions.addView(ImageView(this).apply {
                 setImageResource(R.drawable.ic_arrow_back)
                 rotation = 270f
+                imageTintList = ContextCompat.getColorStateList(this@WorkspaceActivity, R.color.text_muted)
                 contentDescription = getString(R.string.screen_history_direction)
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40))
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(36))
                 setPadding(dp(8), dp(8), dp(8), dp(8))
             })
+            val current = index == comment.history.size
             val card = layoutInflater.inflate(R.layout.item_comment_version, versions, false)
-            card.findViewById<TextView>(R.id.tvVersionLabel).text =
-                if (index == comment.history.size) "Versão atual" else "Versão ${index + 1}"
+            card.findViewById<TextView>(R.id.tvVersionLabel).apply {
+                text = if (current) getString(R.string.screen_current_version) else getString(R.string.screen_version_number, index + 1)
+                if (current) setTextColor(color(R.color.blue))
+            }
             card.findViewById<TextView>(R.id.tvVersionText).text = value
+            // A versão atual recebe destaque para diferenciá-la das anteriores.
+            if (current) card.setBackgroundResource(R.drawable.bg_card_highlight)
             versions.addView(card)
         }
         view.findViewById<View>(R.id.btnCloseHistory).setOnClickListener { dialog.dismiss() }
@@ -461,6 +472,7 @@ open class WorkspaceActivity : AppCompatActivity() {
         }
         team!!.members.forEach { member ->
             val card = layoutInflater.inflate(R.layout.item_manage_member, list, false)
+            card.findViewById<TextView>(R.id.tvManagedMemberAvatar).text = Navigation.initials(member.name)
             card.findViewById<TextView>(R.id.tvManagedMemberName).text = member.name
             val roleLabel = card.findViewById<TextView>(R.id.tvManagedMemberRole)
             val roleSpinner = card.findViewById<Spinner>(R.id.spinnerManagedMemberRole)
@@ -472,8 +484,8 @@ open class WorkspaceActivity : AppCompatActivity() {
             removeButton.visibility = if (isCreator) View.GONE else View.VISIBLE
             if (!isCreator) {
                 val options = listOf("Administrador(a)", "Membro")
-                roleSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options).apply {
-                    setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                roleSpinner.adapter = ArrayAdapter(this, R.layout.item_spinner_role, options).apply {
+                    setDropDownViewResource(R.layout.item_spinner_dropdown)
                 }
                 roleSpinner.setSelection(options.indexOf(member.role).coerceAtLeast(0))
                 roleSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -504,6 +516,11 @@ open class WorkspaceActivity : AppCompatActivity() {
         val email = findViewById<br.com.fatec.syncro.ui.SyncroTextInput>(R.id.profileEmailInput)
         val password = findViewById<br.com.fatec.syncro.ui.SyncroTextInput>(R.id.profilePasswordInput)
         val confirm = findViewById<br.com.fatec.syncro.ui.SyncroTextInput>(R.id.profileConfirmPasswordInput)
+        text(R.id.tvProfileAvatar, Navigation.initials(Workspace.profile.name))
+        text(R.id.tvProfileName, Workspace.profile.name)
+        text(R.id.tvProfileEmail, Workspace.profile.email)
+        findViewById<View>(R.id.tvProfileEmail)?.visibility =
+            if (Workspace.profile.email.isBlank()) View.GONE else View.VISIBLE
         name.input.setText(Workspace.profile.name)
         email.input.setText(Workspace.profile.email)
         password.input.setText("")

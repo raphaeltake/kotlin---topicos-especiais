@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
@@ -34,6 +35,9 @@ class TeamsActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnProfile).setOnClickListener {
             Navigation.open(this, "profile")
         }
+        findViewById<TextView>(R.id.tvGreeting).text =
+            getString(R.string.home_greeting, Workspace.profile.name.trim().substringBefore(" "))
+        findViewById<TextView>(R.id.tvTeamsCount).text = Workspace.teams.size.toString()
         val first = findViewById<View>(R.id.teamItem1)
         val parent = first.parent as ViewGroup
         val index = parent.indexOfChild(first)
@@ -41,6 +45,12 @@ class TeamsActivity : AppCompatActivity() {
         Workspace.teams.forEachIndexed { offset, team ->
             val row = layoutInflater.inflate(R.layout.item_team, parent, false)
             row.findViewById<TextView>(R.id.tvTeamName).text = team.name
+            row.findViewById<TextView>(R.id.tvTeamInitial).text = Navigation.initials(team.name)
+            row.findViewById<TextView>(R.id.tvTeamRole).apply {
+                text = getString(if (team.admin) R.string.role_admin_short else R.string.role_member_short)
+                setBackgroundResource(if (team.admin) R.drawable.bg_chip_blue else R.drawable.bg_chip)
+                setTextColor(ContextCompat.getColor(context, if (team.admin) R.color.blue_dark else R.color.gray))
+            }
             row.findViewById<TextView>(R.id.tvTeamDescription).apply {
                 text = Navigation.descriptionOrDefault(this@TeamsActivity, team.description)
                 maxLines = 5
@@ -59,11 +69,8 @@ class TeamsActivity : AppCompatActivity() {
     }
 }
 
-/** Mensagem de lista vazia com o mesmo estilo de texto usado nas telas. */
-internal fun emptyState(context: android.content.Context, message: String) = TextView(context).apply {
-    val padding = (16 * context.resources.displayMetrics.density).toInt()
-    text = message
-    setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.gray))
-    textSize = 14f
-    setPadding(0, padding, 0, padding)
-}
+/** Estado de lista vazia (ícone e mensagem) com o mesmo estilo em todas as telas. */
+internal fun emptyState(context: android.content.Context, message: String): View =
+    android.view.LayoutInflater.from(context).inflate(R.layout.item_empty_state, null, false).apply {
+        findViewById<TextView>(R.id.tvEmptyMessage).text = message
+    }

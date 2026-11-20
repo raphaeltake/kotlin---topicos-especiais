@@ -1,39 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Referência: 7 - Confirmação convite enviado com sucesso.png. Paleta e componentes dos layouts existentes. -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bg_light">
-    <include
-        layout="@layout/include_screen_toolbar" />
+    android:background="@color/bg_light"
+    android:orientation="vertical">
+
+    <include layout="@layout/include_screen_toolbar" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true"
         android:clipToPadding="false"
-        android:overScrollMode="ifContentScrolls">
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:gravity="center_vertical">
+            android:paddingHorizontal="28dp"
+            android:paddingBottom="48dp">
+
+            <FrameLayout
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:background="@drawable/bg_success_ring">
+
+                <ImageView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_check"
+                    app:tint="@color/white" />
+            </FrameLayout>
+
             <TextView
                 android:id="@+id/tvSuccess"
                 style="@style/Screen.Title"
-                android:text="@string/screen_invite_success"
+                android:layout_marginTop="28dp"
                 android:gravity="center"
-                android:layout_marginVertical="32dp" />
+                android:text="@string/screen_invite_success" />
+
+            <TextView
+                style="@style/Screen.Subtitle"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="@string/screen_invite_success_message" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnContinue"
                 style="@style/Screen.Button.Primary"
+                android:layout_marginTop="36dp"
                 android:text="@string/screen_continue" />
         </LinearLayout>
     </ScrollView>

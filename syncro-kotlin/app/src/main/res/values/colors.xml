@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Paleta original do Syncro (mantida). -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="blue">#FF2563EB</color>
@@ -16,4 +17,30 @@
     <color name="status_red">#FFEF4444</color>
     <color name="status_red_bg">#FFFEE2E2</color>
     <color name="status_blue_bg">#FFEFF6FF</color>
+
+    <!--
+        Tons derivados da mesma paleta (azul, cinza-ardósia e cores de status),
+        usados para dar hierarquia e contraste à interface moderna.
+    -->
+    <color name="text_primary">#FF0F172A</color>
+    <color name="border">#FFE2E8F0</color>
+    <color name="border_strong">#FFCBD5E1</color>
+    <color name="text_muted">#FF94A3B8</color>
+    <color name="blue_dark">#FF1D4ED8</color>
+    <color name="blue_mid">#FF3B82F6</color>
+    <color name="blue_soft">#FFEFF6FF</color>
+    <color name="blue_soft_strong">#FFDBEAFE</color>
+    <color name="blue_dashed">#802563EB</color>
+    <color name="status_green_text">#FF15803D</color>
+    <color name="status_yellow_text">#FFB45309</color>
+    <color name="status_red_text">#FFB91C1C</color>
+    <color name="status_red_strong">#FFDC2626</color>
+
+    <!-- Transparências para elementos sobre o gradiente azul. -->
+    <color name="white_12">#1FFFFFFF</color>
+    <color name="white_20">#33FFFFFF</color>
+    <color name="white_85">#D9FFFFFF</color>
+    <color name="ripple_dark">#140F172A</color>
+    <color name="ripple_blue">#1F2563EB</color>
+    <color name="ripple_red">#1FDC2626</color>
 </resources>

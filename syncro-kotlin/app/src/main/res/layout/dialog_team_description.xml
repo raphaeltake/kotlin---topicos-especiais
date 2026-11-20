@@ -1,33 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mesmo padrão visual dos demais diálogos (fundo, título e botão). -->
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Descrição completa da equipe. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/bg_light"
     android:clipToPadding="false"
     android:fillViewport="false"
     android:overScrollMode="ifContentScrolls">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+    <LinearLayout style="@style/Screen.Dialog.Content">
 
-        <TextView
-            android:id="@+id/tvTitle"
-            style="@style/Screen.Title"
-            android:layout_marginBottom="16dp"
-            android:text="@string/screen_team_description" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                style="@style/Screen.IconTile"
+                android:src="@drawable/ic_description" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                style="@style/Screen.Dialog.Title"
+                android:layout_width="0dp"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:text="@string/screen_team_description" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvDescription"
-            style="@style/Screen.Body" />
+            style="@style/Screen.Body"
+            android:layout_marginTop="18dp"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClose"
-            style="@style/Screen.Button.Primary"
+            style="@style/Screen.Button.Outline"
             android:layout_marginTop="24dp"
             android:text="@string/screen_close" />
     </LinearLayout>

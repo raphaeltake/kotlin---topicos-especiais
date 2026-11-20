@@ -1,64 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Toque em qualquer parte do comentário abre o histórico de versões. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
+    android:layout_marginTop="12dp"
+    android:background="@drawable/bg_comment"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground"
-    android:orientation="vertical">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp">
-
-        <TextView
-            android:id="@+id/tvCommentAuthor"
-            style="@style/Screen.Label"
-            android:layout_width="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/screen_member_name"
-            app:layout_constrainedWidth="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btnCommentHistory"
-            app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/btnCommentHistory"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/screen_edited"
-            android:textColor="@color/blue"
-            android:textSize="12sp"
-            app:layout_constraintBaseline_toBaselineOf="@id/tvCommentAuthor"
-            app:layout_constraintEnd_toStartOf="@id/btnEditComment1"
-            app:layout_constraintStart_toEndOf="@id/tvCommentAuthor" />
-
-        <ImageButton
-            android:id="@+id/btnEditComment1"
-            style="@style/Screen.Icon"
-            android:contentDescription="@string/screen_edit_comment"
-            android:src="@drawable/ic_edit"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="14dp">
 
     <TextView
-        android:id="@+id/tvCommentText1"
-        style="@style/Screen.Body" />
+        android:id="@+id/tvCommentAvatar"
+        style="@style/Screen.Avatar"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:textSize="13sp"
+        tools:text="AS" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/light_gray"
-        android:importantForAccessibility="no" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="36dp">
+
+            <TextView
+                android:id="@+id/tvCommentAuthor"
+                style="@style/Screen.Label"
+                android:layout_width="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/screen_member_name"
+                android:textSize="14sp"
+                app:layout_constrainedWidth="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btnCommentHistory"
+                app:layout_constraintHorizontal_bias="0"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/btnCommentHistory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_chip_blue"
+                android:fontFamily="sans-serif-medium"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:text="@string/screen_edited"
+                android:textColor="@color/blue_dark"
+                android:textSize="11sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/tvCommentAuthor"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/tvCommentText1"
+            style="@style/Screen.Body"
+            android:textColor="@color/text_primary"
+            tools:text="Comentário da tarefa" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnEditComment1"
+        style="@style/Screen.Icon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:padding="9dp"
+        android:contentDescription="@string/screen_edit_comment"
+        android:src="@drawable/ic_edit" />
 </LinearLayout>
