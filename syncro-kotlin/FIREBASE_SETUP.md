@@ -25,6 +25,8 @@ vale para a criação de equipes.
 | `users/{uid}` | `name`, `email`, `createdAt`, `updatedAt` |
 | `teams/{teamId}` | `name`, `description`, `code`, `createdBy`, `memberIds`, `adminIds`, `memberNames`, `invitedEmails`, `createdAt`, `updatedAt` |
 | `teamCodes/{code}` | `teamId`, `createdAt` |
+| `teams/{teamId}/tasks/{taskId}` | `title`, `description`, `responsibles`, `dueDate` (aaaa-mm-dd), `status` (`pending`, `in_progress`, `finished`), `createdBy`, `createdAt`, `updatedAt` |
+| `teams/{teamId}/tasks/{taskId}/comments/{commentId}` | `text`, `history` (versões anteriores), `authorId`, `authorName`, `createdAt`, `updatedAt` |
 
 Cada equipe é um único documento. `memberIds` lista os uids dos membros (o
 criador sempre incluído), `adminIds` os administradores (o criador fica fora
@@ -33,7 +35,8 @@ cada membro e `invitedEmails` os convites pendentes. O código de convite é
 reservado em `teamCodes/{code}` na mesma transação que cria a equipe, e as
 regras impedem sobrescrever um código existente.
 
-As operações ficam em `FirebaseTeamRepository`, e cada uma é validada por
+As operações ficam em `FirebaseTeamRepository` (equipes) e
+`FirebaseTaskRepository` (tarefas e comentários), e cada uma é validada por
 `firestore.rules`:
 
 | Operação | Quem pode |
@@ -45,7 +48,12 @@ As operações ficam em `FirebaseTeamRepository`, e cada uma é validada por
 | Entrar por código ou aceitar convite | Qualquer usuário, sempre como membro comum |
 | Recusar convite | O próprio convidado |
 | Sair da equipe | Qualquer membro, exceto o criador |
-| Apagar equipe | Só o criador |
+| Apagar equipe (com tarefas e comentários) | Só o criador |
+| Ver tarefas e comentários | Membros |
+| Criar, editar e apagar tarefas | Criador e administradores (editar só enquanto não finalizada) |
+| Iniciar e finalizar tarefas | Qualquer membro, só para a frente (pendente → em andamento → finalizada) |
+| Comentar | Qualquer membro, enquanto a tarefa não for finalizada |
+| Editar e apagar comentário | O autor ou um administrador (cada edição guarda a versão anterior em `history`) |
 
 O plugin `com.google.gms.google-services` e aplicado automaticamente quando o
 arquivo de configuracao esta presente. Sem o arquivo, o projeto ainda compila,

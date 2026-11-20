@@ -55,6 +55,11 @@
     <string name="team_permission_denied">Você não tem permissão para fazer isso nesta equipe.</string>
     <string name="team_no_longer_exists">Esta equipe não existe mais.</string>
     <string name="team_creator_cannot_leave">Quem criou a equipe não pode sair dela. Você pode apagá-la em Gerenciar membros.</string>
+    <string name="task_title_too_long_error">O título deve ter no máximo %1$d caracteres.</string>
+    <string name="task_description_too_long_error">A descrição deve ter no máximo %1$d caracteres.</string>
+    <string name="task_responsibles_too_long_error">Os responsáveis devem ter no máximo %1$d caracteres.</string>
+    <string name="comment_too_long_error">O comentário deve ter no máximo %1$d caracteres.</string>
+    <string name="comment_no_longer_exists">Este comentário não existe mais.</string>
     <string name="create_account">Criar conta</string>
     <string name="join_team_button">Entrar em equipe</string>
     <string name="your_teams">Suas equipes</string>

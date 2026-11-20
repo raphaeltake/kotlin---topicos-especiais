@@ -2,11 +2,9 @@ package br.com.fatec.syncro
 
 import android.content.Context
 import androidx.annotation.StringRes
-import com.google.android.gms.tasks.RuntimeExecutionException
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -63,11 +61,8 @@ object FirebaseTeamRepository {
         val invitesTask = if (email.isEmpty()) null
             else teams.whereArrayContains("invitedEmails", email).get()
 
-        Tasks.whenAllComplete(listOfNotNull(teamsTask, invitesTask)).addOnCompleteListener {
-            if (!teamsTask.isSuccessful) {
-                onComplete(Result.failure(teamsTask.exception ?: IllegalStateException()))
-                return@addOnCompleteListener
-            }
+        Tasks.whenAllComplete(listOfNotNull(teamsTask, invitesTask)).continueWithTask {
+            if (!teamsTask.isSuccessful) throw teamsTask.exception ?: IllegalStateException()
 
             val loaded = teamsTask.result.documents
                 .sortedWith(compareBy(nullsLast()) { it.getTimestamp("createdAt") })
@@ -87,8 +82,11 @@ object FirebaseTeamRepository {
                 Workspace.invitations.clear()
                 Workspace.invitations.addAll(invitations)
             }
-            onComplete(Result.success(Unit))
-        }
+
+            // Tarefas de cada equipe, para a contagem de tarefas ativas na lista.
+            // Se a busca de uma equipe falhar, ela mantém as tarefas que já tinha.
+            Tasks.whenAllComplete(loaded.map { FirebaseTaskRepository.refreshTasks(it) })
+        }.addOnCompleteListener { task -> deliver(task, onComplete) {} }
     }
 
     fun createTeam(
@@ -136,7 +134,8 @@ object FirebaseTeamRepository {
                     code = code,
                     tasks = mutableListOf(),
                     members = mutableListOf(Workspace.Member(memberName, CREATOR_LABEL, user.uid)),
-                    createdBy = user.uid
+                    createdBy = user.uid,
+                    tasksLoaded = true
                 ).also { Workspace.teams.add(it) }
             }
         }
@@ -162,14 +161,20 @@ object FirebaseTeamRepository {
         }
     }
 
-    /** Apaga a equipe e libera o código. Só o criador tem permissão. */
+    /**
+     * Apaga as tarefas e comentários, depois a equipe e o código. Só o criador
+     * tem permissão. A equipe vai por último porque as regras das tarefas
+     * consultam o documento dela.
+     */
     fun deleteTeam(team: Workspace.Team, onComplete: (Result<Unit>) -> Unit) {
-        val batch = firestore.batch().delete(teams.document(team.id))
-        if (team.code.isNotBlank()) batch.delete(teamCodes.document(team.code))
-        batch.commit()
-            .addOnCompleteListener { task ->
-                deliver(task, onComplete) { Workspace.teams.remove(team) }
-            }
+        FirebaseTaskRepository.deleteAllTasks(team.id).continueWithTask { tasksDeleted ->
+            if (!tasksDeleted.isSuccessful) throw tasksDeleted.exception ?: IllegalStateException()
+            val batch = firestore.batch().delete(teams.document(team.id))
+            if (team.code.isNotBlank()) batch.delete(teamCodes.document(team.code))
+            batch.commit()
+        }.addOnCompleteListener { task ->
+            deliver(task, onComplete) { Workspace.teams.remove(team) }
+        }
     }
 
     fun inviteMembers(
@@ -270,7 +275,7 @@ object FirebaseTeamRepository {
     }
 
     fun errorMessage(context: Context, error: Throwable): String {
-        val cause = unwrap(error)
+        val cause = unwrapFirebaseError(error)
         return when {
             cause is TeamException -> context.getString(cause.messageRes)
             cause is FirebaseFirestoreException &&
@@ -341,17 +346,15 @@ object FirebaseTeamRepository {
             description = document.getString("description").orEmpty(),
             admin = uid == createdBy || uid in adminIds,
             code = document.getString("code").orEmpty(),
-            // Tarefas ainda não estão no Firestore: preserva as criadas nesta sessão.
+            // As tarefas são buscadas à parte, por FirebaseTaskRepository.
             tasks = previous?.tasks ?: mutableListOf(),
             members = members.toMutableList(),
             hasNewTasks = previous?.hasNewTasks ?: false,
             hasNewMembers = previous?.hasNewMembers == true || someoneJoined,
-            createdBy = createdBy
+            createdBy = createdBy,
+            tasksLoaded = previous?.tasksLoaded ?: false
         )
     }
-
-    private fun DocumentSnapshot.stringList(field: String): List<String> =
-        (get(field) as? List<*>).orEmpty().filterIsInstance<String>()
 
     private fun memberName(user: FirebaseUser, profile: DocumentSnapshot?): String =
         listOf(profile?.getString("name"), user.displayName, user.email)
@@ -375,26 +378,6 @@ object FirebaseTeamRepository {
     private fun randomCode() = buildString(CODE_LENGTH) {
         repeat(CODE_LENGTH) { append(CODE_ALPHABET[random.nextInt(CODE_ALPHABET.length)]) }
     }
-
-    /** Converte o resultado da tarefa, atualizando o cache só em caso de sucesso. */
-    private fun <T, R> deliver(task: Task<T>, onComplete: (Result<R>) -> Unit, onSuccess: (T) -> R) {
-        if (task.isSuccessful) {
-            onComplete(Result.success(onSuccess(task.result)))
-        } else {
-            onComplete(Result.failure(unwrap(task.exception ?: IllegalStateException())))
-        }
-    }
-
-    private fun unwrap(error: Throwable): Throwable {
-        var current = error
-        while (current is RuntimeExecutionException && current.cause != null) {
-            current = current.cause!!
-        }
-        return current
-    }
-
-    private fun notSignedIn() =
-        FirebaseAuthInvalidUserException("NO_CURRENT_USER", "Usuário não autenticado.")
 
     private const val TEAMS_COLLECTION = "teams"
     private const val TEAM_CODES_COLLECTION = "teamCodes"

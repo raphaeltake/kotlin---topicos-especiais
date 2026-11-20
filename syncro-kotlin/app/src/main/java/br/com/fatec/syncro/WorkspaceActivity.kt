@@ -27,7 +27,25 @@ open class WorkspaceActivity : AppCompatActivity() {
     private val returnToCaller get() = intent.getBooleanExtra(Navigation.RETURN_TO_CALLER, false)
     private var activeDialog: androidx.appcompat.app.AlertDialog? = null
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge() }
-    override fun onResume() { super.onResume(); render() }
+    override fun onResume() { super.onResume(); render(); refresh() }
+
+    /** Busca no Firestore os dados da tela atual e redesenha quando chegarem. */
+    private fun refresh() {
+        val current = team ?: return
+        val onLoaded = alive<Result<Unit>> { result ->
+            result.onFailure { error -> message(errorMessage(error)) }
+            if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) render()
+        }
+        when (screen) {
+            "team", "history" -> FirebaseTaskRepository.loadTasks(current, onLoaded)
+            // Atualiza a tarefa (status, dados ou exclusão) e depois os comentários.
+            "task" -> FirebaseTaskRepository.loadTasks(current, alive { result ->
+                val item = task
+                if (result.isFailure || item == null) onLoaded(result)
+                else FirebaseTaskRepository.loadComments(current, item, onLoaded)
+            })
+        }
+    }
 
     private fun render() {
         val current = team
@@ -356,11 +374,25 @@ open class WorkspaceActivity : AppCompatActivity() {
         }
         text(R.id.tvTaskTitle, item.title); text(R.id.tvDescription, item.description)
         text(R.id.tvResponsibles, responsiblesText(item)); text(R.id.tvDueDate, item.date)
-        click(R.id.btnTaskAction) { item.advance(); render() }
+        click(R.id.btnTaskAction) {
+            val button = findViewById<View>(R.id.btnTaskAction)
+            if (!button.isEnabled) return@click
+            button.isEnabled = false
+            FirebaseTaskRepository.advanceTask(team!!, item, alive { result ->
+                result.onFailure { error -> message(errorMessage(error)) }
+                render()
+            })
+        }
         findViewById<View>(R.id.btnEditTask)?.visibility = if (team!!.admin) View.VISIBLE else View.GONE
         findViewById<View>(R.id.btnDeleteTask)?.visibility = if (team!!.admin) View.VISIBLE else View.GONE
         if (team!!.admin) {
-            click(R.id.btnDeleteTask) { confirm(R.layout.dialog_delete_task, R.id.btnConfirmDeleteTask) { team!!.tasks.remove(item); finish() } }
+            click(R.id.btnDeleteTask) {
+                confirm(R.layout.dialog_delete_task, R.id.btnConfirmDeleteTask) {
+                    FirebaseTaskRepository.deleteTask(team!!, item, alive { result ->
+                        result.onSuccess { finish() }.onFailure { error -> message(errorMessage(error)) }
+                    })
+                }
+            }
             click(R.id.btnEditTask) { editTask(item) }
         }
         click(R.id.btnComment) { editComment(null) }
@@ -380,23 +412,50 @@ open class WorkspaceActivity : AppCompatActivity() {
             isClickable = true
             setOnClickListener { showDueDatePicker(this) }
         }
-        view.findViewById<View>(if (item == null) R.id.btnAddTask else R.id.btnSaveTask).setOnClickListener {
-            title.showError(if (title.text.isBlank()) getString(R.string.screen_task_title_required) else null)
-            description.showError(if (description.text.isBlank()) getString(R.string.screen_description_required) else null)
-            date.showError(if (DueDates.isValid(date.text.toString().trim())) null else getString(R.string.screen_due_date_invalid))
-            if (title.text.isBlank() || description.text.isBlank() || !DueDates.isValid(date.text.toString().trim())) {
+        val save = view.findViewById<View>(if (item == null) R.id.btnAddTask else R.id.btnSaveTask)
+        save.setOnClickListener {
+            val newTitle = title.text.toString().trim()
+            val newDescription = description.text.toString().trim()
+            val newResponsibles = responsible.text.toString().trim()
+            val newDate = date.text.toString().trim()
+            val titleError = when {
+                newTitle.isEmpty() -> getString(R.string.screen_task_title_required)
+                newTitle.length > FirebaseTaskRepository.MAX_TITLE_LENGTH ->
+                    getString(R.string.task_title_too_long_error, FirebaseTaskRepository.MAX_TITLE_LENGTH)
+                else -> null
+            }
+            val descriptionError = when {
+                newDescription.isEmpty() -> getString(R.string.screen_description_required)
+                newDescription.length > FirebaseTaskRepository.MAX_DESCRIPTION_LENGTH ->
+                    getString(R.string.task_description_too_long_error, FirebaseTaskRepository.MAX_DESCRIPTION_LENGTH)
+                else -> null
+            }
+            val responsiblesError = if (newResponsibles.length > FirebaseTaskRepository.MAX_RESPONSIBLES_LENGTH)
+                getString(R.string.task_responsibles_too_long_error, FirebaseTaskRepository.MAX_RESPONSIBLES_LENGTH)
+            else null
+            val dateError = if (DueDates.isValid(newDate)) null else getString(R.string.screen_due_date_invalid)
+            title.showError(titleError)
+            description.showError(descriptionError)
+            responsible.showError(responsiblesError)
+            date.showError(dateError)
+            if (listOf(titleError, descriptionError, responsiblesError, dateError).any { it != null }) {
                 return@setOnClickListener
             }
-            val target = item ?: Workspace.Task(comments = mutableListOf())
-            target.title = title.text.toString().trim(); target.description = description.text.toString().trim()
-            target.responsibles = responsible.text.toString().trim(); target.date = date.text.toString().trim()
+            if (!save.isEnabled) return@setOnClickListener
+            save.isEnabled = false
             if (item == null) {
-                team!!.tasks.add(target)
-                team!!.hasNewTasks = true
-                Workspace.hasUnreadNotifications = true
+                FirebaseTaskRepository.createTask(team!!, newTitle, newDescription, newResponsibles, newDate, alive { result ->
+                    save.isEnabled = true
+                    result.onSuccess { created -> dialog.dismiss(); go("task", created.id) }
+                        .onFailure { error -> title.showError(errorMessage(error)) }
+                })
+            } else {
+                FirebaseTaskRepository.updateTask(team!!, item, newTitle, newDescription, newResponsibles, newDate, alive { result ->
+                    save.isEnabled = true
+                    result.onSuccess { dialog.dismiss(); render() }
+                        .onFailure { error -> title.showError(errorMessage(error)) }
+                })
             }
-            dialog.dismiss()
-            if (item == null) go("task", target.id) else render()
         }
     }
 
@@ -431,7 +490,9 @@ open class WorkspaceActivity : AppCompatActivity() {
             val edited = row.findViewById<TextView>(R.id.btnCommentHistory)
             edited.visibility = if (comment.history.isEmpty()) View.GONE else View.VISIBLE
             val edit = row.findViewById<View>(R.id.btnEditComment1)
-            edit.visibility = if (finished) View.GONE else View.VISIBLE
+            // Só o autor ou um administrador edita ou apaga o comentário.
+            val canModerate = team!!.admin || comment.authorId == Workspace.profile.uid
+            edit.visibility = if (finished || !canModerate) View.GONE else View.VISIBLE
             edit.setOnClickListener {
                 if (team!!.admin) {
                     PopupMenu(this, edit).apply {
@@ -444,18 +505,38 @@ open class WorkspaceActivity : AppCompatActivity() {
             if (team!!.admin && !finished) row.setOnLongClickListener { removeComment(comment); true }
             parent.addView(row, insertion + index)
         }
-        if (task!!.comments.isEmpty()) parent.addView(emptyState(this, getString(R.string.screen_no_comments)), insertion)
+        if (task!!.comments.isEmpty() && task!!.commentsLoaded) parent.addView(emptyState(this, getString(R.string.screen_no_comments)), insertion)
     }
     private fun removeComment(comment: Workspace.Comment) =
-        confirm(R.layout.dialog_remove_comment, R.id.btnConfirmRemoveComment) { task!!.comments.remove(comment); render() }
+        confirm(R.layout.dialog_remove_comment, R.id.btnConfirmRemoveComment) {
+            FirebaseTaskRepository.deleteComment(team!!, task!!, comment, alive { result ->
+                result.onFailure { error -> message(errorMessage(error)) }
+                render()
+            })
+        }
 
     private fun editComment(comment: Workspace.Comment?) = dialog(if (comment == null) R.layout.dialog_create_comment else R.layout.dialog_edit_comment) { view, dialog ->
         val input = view.findViewById<EditText>(R.id.etComment).apply { setText(comment?.text.orEmpty()); clearErrorOnChange() }
-        view.findViewById<View>(if (comment == null) R.id.btnSubmitComment else R.id.btnSaveComment).setOnClickListener {
-            if (input.text.isBlank()) { input.showError(getString(R.string.screen_comment_required)); return@setOnClickListener }
-            if (comment == null) task!!.comments.add(Workspace.Comment(input.text.toString(), author = Workspace.profile.name))
-            else if (comment.text != input.text.toString()) { comment.history.add(comment.text); comment.text = input.text.toString() }
-            dialog.dismiss(); render()
+        val save = view.findViewById<View>(if (comment == null) R.id.btnSubmitComment else R.id.btnSaveComment)
+        save.setOnClickListener {
+            val text = input.text.toString()
+            val error = when {
+                text.isBlank() -> getString(R.string.screen_comment_required)
+                text.length > FirebaseTaskRepository.MAX_COMMENT_LENGTH ->
+                    getString(R.string.comment_too_long_error, FirebaseTaskRepository.MAX_COMMENT_LENGTH)
+                else -> null
+            }
+            input.showError(error)
+            if (error != null || !save.isEnabled) return@setOnClickListener
+            if (comment != null && comment.text == text) { dialog.dismiss(); return@setOnClickListener }
+            save.isEnabled = false
+            val onSaved = alive<Result<Unit>> { result ->
+                save.isEnabled = true
+                result.onSuccess { dialog.dismiss(); render() }
+                    .onFailure { failure -> input.showError(errorMessage(failure)) }
+            }
+            if (comment == null) FirebaseTaskRepository.addComment(team!!, task!!, text, onSaved)
+            else FirebaseTaskRepository.editComment(team!!, task!!, comment, text, onSaved)
         }
         if (comment != null) view.findViewById<View>(R.id.btnDeleteComment)?.setOnClickListener { removeComment(comment) }
     }

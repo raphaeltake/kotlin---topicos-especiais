@@ -14,6 +14,16 @@ service cloud.firestore {
       return /databases/$(database)/documents/teams/$(teamId);
     }
 
+    function isTeamMember(teamId) {
+      return signedIn() && request.auth.uid in get(teamPath(teamId)).data.memberIds;
+    }
+
+    function isTeamAdmin(teamId) {
+      let team = get(teamPath(teamId)).data;
+      return signedIn()
+        && (request.auth.uid == team.createdBy || request.auth.uid in team.adminIds);
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
 
@@ -209,6 +219,109 @@ service cloud.firestore {
       allow delete: if signedIn()
         && get(teamPath(resource.data.teamId)).data.createdBy == request.auth.uid
         && !existsAfter(teamPath(resource.data.teamId));
+    }
+
+    // Tarefas da equipe. Administradores criam, editam e apagam; qualquer
+    // membro avança o status (pendente -> em andamento -> finalizada).
+    match /teams/{teamId}/tasks/{taskId} {
+      function changed() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      function validTask(task) {
+        return task.keys().hasOnly([
+            'title', 'description', 'responsibles', 'dueDate', 'status',
+            'createdBy', 'createdAt', 'updatedAt'
+          ])
+          && task.keys().hasAll([
+            'title', 'description', 'responsibles', 'dueDate', 'status',
+            'createdBy', 'createdAt', 'updatedAt'
+          ])
+          && task.title is string && task.title == task.title.trim()
+          && task.title.size() > 0 && task.title.size() <= 100
+          && task.description is string
+          && task.description.size() > 0 && task.description.size() <= 2000
+          && task.responsibles is string && task.responsibles.size() <= 200
+          && task.dueDate is string && task.dueDate.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+          && task.status in ['pending', 'in_progress', 'finished'];
+      }
+
+      function validTransition(from, to) {
+        return from == to
+          || (from == 'pending' && to == 'in_progress')
+          || (from == 'in_progress' && to == 'finished');
+      }
+
+      allow read: if isTeamMember(teamId);
+
+      allow create: if isTeamAdmin(teamId)
+        && validTask(request.resource.data)
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isTeamMember(teamId)
+        && validTask(request.resource.data)
+        && request.resource.data.updatedAt == request.time
+        && (
+          (changed().hasOnly(['status', 'updatedAt'])
+            && validTransition(resource.data.status, request.resource.data.status))
+          || (isTeamAdmin(teamId)
+            && resource.data.status != 'finished'
+            && changed().hasOnly(['title', 'description', 'responsibles', 'dueDate', 'updatedAt']))
+        );
+
+      allow delete: if isTeamAdmin(teamId);
+
+      // Comentários. Qualquer membro comenta enquanto a tarefa não termina;
+      // o autor ou um administrador edita e apaga. Cada edição guarda o texto
+      // anterior em history, que só cresce.
+      match /comments/{commentId} {
+        function taskOpen() {
+          return get(/databases/$(database)/documents/teams/$(teamId)/tasks/$(taskId)).data.status != 'finished';
+        }
+
+        function validText(text) {
+          return text is string && text.trim().size() > 0 && text.size() <= 1000;
+        }
+
+        function canModerate() {
+          return resource.data.authorId == request.auth.uid || isTeamAdmin(teamId);
+        }
+
+        allow read: if isTeamMember(teamId);
+
+        allow create: if isTeamMember(teamId)
+          && taskOpen()
+          && request.resource.data.keys().hasOnly([
+            'text', 'history', 'authorId', 'authorName', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'text', 'history', 'authorId', 'authorName', 'createdAt', 'updatedAt'
+          ])
+          && validText(request.resource.data.text)
+          && request.resource.data.history == []
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.authorName is string
+          && request.resource.data.authorName.size() > 0
+          && request.resource.data.authorName.size() <= 100
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+
+        allow update: if isTeamMember(teamId)
+          && taskOpen()
+          && canModerate()
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['text', 'history', 'updatedAt'])
+          && validText(request.resource.data.text)
+          && request.resource.data.text != resource.data.text
+          && request.resource.data.history == resource.data.history.concat([resource.data.text])
+          && request.resource.data.history.size() <= 50
+          && request.resource.data.updatedAt == request.time;
+
+        allow delete: if isTeamMember(teamId) && canModerate();
+      }
     }
   }
 }

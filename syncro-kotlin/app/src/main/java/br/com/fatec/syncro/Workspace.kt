@@ -1,9 +1,9 @@
 package br.com.fatec.syncro
 
 /**
- * Estado em memória lido pelas telas. Equipes, membros e convites são uma cópia
- * do Firestore mantida por FirebaseTeamRepository; tarefas e comentários ainda
- * existem só aqui.
+ * Estado em memória lido pelas telas: uma cópia do Firestore mantida por
+ * FirebaseTeamRepository (equipes, membros e convites) e FirebaseTaskRepository
+ * (tarefas e comentários).
  */
 object Workspace {
     data class Profile(
@@ -18,7 +18,9 @@ object Workspace {
     data class Comment(
         var text: String,
         val history: MutableList<String> = mutableListOf(),
-        val author: String = profile.name
+        val author: String = profile.name,
+        val id: String = java.util.UUID.randomUUID().toString(),
+        val authorId: String = ""
     )
     data class Task(
         val id: String = java.util.UUID.randomUUID().toString(),
@@ -29,14 +31,15 @@ object Workspace {
         var status: Status = Status.PENDING,
         val comments: MutableList<Comment> = mutableListOf(
             Comment("Comentário da tarefa", author = responsibles.substringBefore(" |"))
-        )
+        ),
+        /** Falso até os comentários serem buscados no Firestore. */
+        var commentsLoaded: Boolean = false
     ) {
-        fun advance() {
-            status = when (status) {
+        val nextStatus: Status
+            get() = when (status) {
                 Status.PENDING -> Status.IN_PROGRESS
                 Status.IN_PROGRESS, Status.FINISHED -> Status.FINISHED
             }
-        }
     }
     data class Member(var name: String, var role: String, val uid: String = "")
     data class Team(
@@ -49,7 +52,9 @@ object Workspace {
         val members: MutableList<Member> = mutableListOf(Member("Nome criador", "Criador(a)"), Member("Nome administrador", "Administrador(a)"), Member("Nome membro", "Membro")),
         var hasNewTasks: Boolean = false,
         var hasNewMembers: Boolean = false,
-        val createdBy: String = ""
+        val createdBy: String = "",
+        /** Falso até as tarefas serem buscadas no Firestore pela primeira vez. */
+        var tasksLoaded: Boolean = false
     ) {
         val isCreator get() = createdBy.isNotEmpty() && createdBy == profile.uid
     }
