@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uma notificação da lista (UC17): conteúdo, data, indicação de não lida e,
+     para convites pendentes, as ações de aceitar ou recusar. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:background="@drawable/bg_card"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivNotificationIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_notifications"
+            app:tint="@color/blue" />
+
+        <TextView
+            android:id="@+id/tvNotificationText"
+            style="@style/Screen.Label"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            tools:text="@string/screen_notification_4" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvNotificationDate"
+            style="@style/Screen.Body"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            tools:text="@string/screen_sample_date" />
+
+        <TextView
+            android:id="@+id/tvNotificationUnread"
+            style="@style/Screen.Badge"
+            android:backgroundTint="@color/status_blue_bg"
+            android:text="@string/notification_unread"
+            android:textColor="@color/blue" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvNotificationState"
+        style="@style/Screen.Body"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/notificationActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcceptNotification"
+            style="@style/Screen.Button.Primary"
+            android:text="@string/screen_accept_invite" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeclineNotification"
+            style="@style/Screen.Button.Outline"
+            android:layout_marginTop="8dp"
+            android:text="@string/screen_decline_invite" />
+    </LinearLayout>
+</LinearLayout>

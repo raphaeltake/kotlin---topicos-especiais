@@ -20,15 +20,25 @@ class TeamsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         render()
-        // Mostra o que já está em memória e atualiza com o Firestore em seguida.
+        load()
+    }
+
+    /** Mostra o que já está em memória e atualiza com o Firestore em seguida. */
+    private fun load() {
         FirebaseTeamRepository.loadTeams { result ->
             if (isDestroyed) return@loadTeams
-            result.onFailure { error ->
-                android.widget.Toast.makeText(
-                    this, FirebaseTeamRepository.errorMessage(this, error), android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
             if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) render()
+            // Em caso de falha, informa o erro e permite nova tentativa.
+            result.onFailure { error ->
+                com.google.android.material.snackbar.Snackbar
+                    .make(
+                        findViewById(android.R.id.content),
+                        FirebaseTeamRepository.errorMessage(this, error),
+                        com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE
+                    )
+                    .setAction(R.string.retry) { load() }
+                    .show()
+            }
         }
     }
 

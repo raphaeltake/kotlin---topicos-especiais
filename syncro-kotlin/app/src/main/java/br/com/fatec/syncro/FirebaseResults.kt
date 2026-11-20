@@ -25,7 +25,7 @@ internal fun unwrapFirebaseError(error: Throwable): Throwable {
     return current
 }
 
-internal fun notSignedIn(): Throwable =
+internal fun notSignedIn(): Exception =
     FirebaseAuthInvalidUserException("NO_CURRENT_USER", "Usuário não autenticado.")
 
 internal fun DocumentSnapshot.stringList(field: String): List<String> =

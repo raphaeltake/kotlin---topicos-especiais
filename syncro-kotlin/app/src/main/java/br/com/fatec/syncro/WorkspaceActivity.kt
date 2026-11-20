@@ -29,22 +29,52 @@ open class WorkspaceActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge() }
     override fun onResume() { super.onResume(); render(); refresh() }
 
-    /** Busca no Firestore os dados da tela atual e redesenha quando chegarem. */
+    /** No histórico aberto a partir de uma tarefa, só os registros dela. */
+    private val historyTask get() = if (screen == "history") task else null
+
+    /**
+     * Busca no Firestore os dados da tela atual e redesenha quando chegarem.
+     * Se a busca falhar, informa o erro e oferece nova tentativa (UC09 A1,
+     * UC13 A2 e UC17 A4).
+     */
     private fun refresh() {
-        val current = team ?: return
+        val current = team
         val onLoaded = alive<Result<Unit>> { result ->
-            result.onFailure { error -> message(errorMessage(error)) }
             if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) render()
+            result.onFailure { error -> showLoadError(error) }
         }
         when (screen) {
-            "team", "history" -> FirebaseTaskRepository.loadTasks(current, onLoaded)
+            // Equipes, membros, convites e notificações.
+            "team", "members", "notifications" -> FirebaseTeamRepository.loadTeams(onLoaded)
+            "history" -> if (current != null) FirebaseTaskRepository.loadTasks(current, alive { result ->
+                if (result.isFailure) onLoaded(result)
+                else FirebaseTaskRepository.loadHistory(current, historyTask, onLoaded)
+            })
             // Atualiza a tarefa (status, dados ou exclusão) e depois os comentários.
-            "task" -> FirebaseTaskRepository.loadTasks(current, alive { result ->
+            "task" -> if (current != null) FirebaseTaskRepository.loadTasks(current, alive { result ->
                 val item = task
                 if (result.isFailure || item == null) onLoaded(result)
                 else FirebaseTaskRepository.loadComments(current, item, onLoaded)
             })
         }
+        // Nas demais telas, basta atualizar o sino de notificações.
+        if (screen !in listOf("team", "members", "notifications")) {
+            FirebaseNotificationRepository.load(alive { if (!isFinishing) Navigation.toolbar(this, current?.id) })
+        }
+    }
+
+    private var loadError: com.google.android.material.snackbar.Snackbar? = null
+
+    private fun showLoadError(error: Throwable) {
+        loadError?.dismiss()
+        loadError = com.google.android.material.snackbar.Snackbar
+            .make(
+                findViewById(android.R.id.content),
+                errorMessage(error),
+                com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE
+            )
+            .setAction(R.string.retry) { refresh() }
+            .apply { show() }
     }
 
     private fun render() {
@@ -78,7 +108,7 @@ open class WorkspaceActivity : AppCompatActivity() {
             }
             "notifications" -> bindNotifications()
             "members" -> bindMembers()
-            "history" -> bindTasks(true)
+            "history" -> bindHistory()
             "task" -> bindTask()
             "profile" -> bindProfile()
             else -> bindTeam()
@@ -152,7 +182,7 @@ open class WorkspaceActivity : AppCompatActivity() {
     }
 
     private fun responsiblesText(item: Workspace.Task) =
-        item.responsibles.ifBlank { getString(R.string.screen_no_responsibles) }
+        team!!.responsibleNames(item).joinToString(", ").ifBlank { getString(R.string.screen_no_responsibles) }
 
     private fun bindJoin() {
         val inputLayout = findViewById<br.com.fatec.syncro.ui.SyncroTextInput>(R.id.teamCodeInputLayout)
@@ -169,9 +199,10 @@ open class WorkspaceActivity : AppCompatActivity() {
                 return@click
             }
             button.isEnabled = false
-            FirebaseTeamRepository.joinByCode(code, alive { result ->
+            // UC06: mostra a equipe encontrada e só entra depois da confirmação.
+            FirebaseTeamRepository.findTeamByCode(code, alive { result ->
                 button.isEnabled = true
-                result.onSuccess { joined -> Navigation.open(this, "team", joined.id); finish() }
+                result.onSuccess { preview -> confirmJoin(preview, inputLayout, button) }
                     .onFailure { error -> inputLayout.error = errorMessage(error); input.requestFocus() }
             })
         }
@@ -179,44 +210,117 @@ open class WorkspaceActivity : AppCompatActivity() {
             if (action == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) { findViewById<View>(R.id.btnJoinTeam).performClick(); true } else false
         }
     }
-    private fun bindNotifications() {
-        Workspace.hasUnreadNotifications = false
-        Navigation.toolbar(this, team?.id)
-        val current = team ?: Workspace.teams.firstOrNull()
-        val teamNotifications = listOf(R.id.tvNotification1, R.id.tvNotification2, R.id.tvNotification3, R.id.tvNotification4)
-        if (current == null) {
-            teamNotifications.forEach { (findViewById<View>(it).parent as View).visibility = View.GONE }
-        } else {
-            val newestMember = current.members.lastOrNull()?.name ?: getString(R.string.screen_member_name)
-            text(R.id.tvNotification1, getString(R.string.screen_notification_new_task, current.name))
-            text(R.id.tvNotification2, getString(R.string.screen_notification_member_joined, newestMember, current.name))
-            text(R.id.tvNotification3, getString(R.string.screen_notification_join_request, current.name))
-            text(R.id.tvNotification4, getString(R.string.screen_notification_invite_accepted, current.name))
-        }
-        // Exibe um convite por vez; ao responder, a tela mostra o próximo.
-        val invitation = Workspace.invitations.firstOrNull()
-        text(R.id.tvNotification5, getString(R.string.screen_notification_invited, invitation?.teamName.orEmpty()))
-        (findViewById<View>(R.id.tvNotification5).parent as View).visibility = if (invitation != null) View.VISIBLE else View.GONE
-        teamNotifications.forEachIndexed { index, id ->
-            click(id) {
-                if (current == null) { message(getString(R.string.screen_no_team_available)); return@click }
-                val firstTask = current.tasks.firstOrNull()
-                if (index == 0 && firstTask != null) Navigation.open(this, "task", current.id, firstTask.id)
-                else Navigation.open(this, if (current.admin && index in 1..2) "members" else "team", current.id)
+    private fun confirmJoin(
+        preview: FirebaseTeamRepository.TeamPreview,
+        inputLayout: TextInputLayout,
+        button: View
+    ) {
+        activeDialog?.dismiss()
+        activeDialog = MaterialAlertDialogBuilder(this)
+            .setTitle(preview.name)
+            .setMessage(Navigation.descriptionOrDefault(this, preview.description))
+            .setNegativeButton(R.string.screen_cancel, null)
+            .setPositiveButton(R.string.join_team_confirm) { _, _ ->
+                button.isEnabled = false
+                FirebaseTeamRepository.joinTeam(preview, alive { result ->
+                    button.isEnabled = true
+                    result.onSuccess { joined -> Navigation.open(this, "team", joined.id); finish() }
+                        .onFailure { error -> inputLayout.error = errorMessage(error) }
+                })
             }
+            .show()
+    }
+
+    /** Não lidas quando a tela foi aberta: continuam marcadas como novas enquanto ela estiver aberta. */
+    private val newNotifications = mutableSetOf<String>()
+
+    /** UC17: notificações com conteúdo e data; as exibidas passam a constar como lidas. */
+    private fun bindNotifications() {
+        val items = Workspace.notifications.toList()
+        items.filter { !it.seen }.forEach { newNotifications.add(it.id) }
+        if (Workspace.notificationsLoaded) Workspace.hasUnreadNotifications = false
+        Navigation.toolbar(this, team?.id)
+        // A lista substitui os cartões de exemplo do layout.
+        val list = notificationList() ?: return
+        list.removeAllViews()
+        items.forEach { list.addView(notificationRow(list, it)) }
+        if (items.isEmpty() && Workspace.notificationsLoaded) {
+            list.addView(emptyState(this, getString(R.string.notifications_empty)))
         }
-        val inviteButtons = listOf(R.id.btnAcceptInvite, R.id.btnDeclineInvite).mapNotNull { findViewById<View>(it) }
-        click(R.id.btnAcceptInvite) {
-            if (invitation == null || inviteButtons.any { !it.isEnabled }) return@click
-            inviteButtons.forEach { it.isEnabled = false }
+        if (Workspace.notificationsLoaded) FirebaseNotificationRepository.markSeen(items)
+    }
+
+    /** O conteúdo rolável da tela, onde ficam os cartões de notificação. */
+    private fun notificationList(): ViewGroup? {
+        var view: View? = findViewById(R.id.tvNotification1)
+        while (view != null && view.parent !is ScrollView) view = view.parent as? View
+        return view as? ViewGroup
+    }
+
+    private fun notificationRow(parent: ViewGroup, notification: Workspace.Notification): View {
+        val row = layoutInflater.inflate(R.layout.item_notification, parent, false)
+        row.findViewById<TextView>(R.id.tvNotificationText).text = notification.content
+        row.findViewById<TextView>(R.id.tvNotificationDate).text = DueDates.formatDateTime(notification.createdAt)
+        row.findViewById<View>(R.id.tvNotificationUnread).visibility =
+            if (notification.id in newNotifications) View.VISIBLE else View.GONE
+        row.findViewById<ImageView>(R.id.ivNotificationIcon).setImageResource(
+            when (notification.type) {
+                FirebaseNotificationRepository.TYPE_TASK_ASSIGNED -> R.drawable.ic_team_tasks
+                FirebaseNotificationRepository.TYPE_TASK_STATUS -> R.drawable.ic_check_circle
+                FirebaseNotificationRepository.TYPE_TASK_COMMENT -> R.drawable.ic_edit
+                else -> R.drawable.ic_person_add
+            }
+        )
+        val state = row.findViewById<TextView>(R.id.tvNotificationState)
+        fun showState(text: Int) {
+            state.text = getString(text)
+            state.visibility = View.VISIBLE
+        }
+        val invitation = Workspace.invitations.firstOrNull { it.teamId == notification.teamId }
+        when (notification.type) {
+            // UC17 A5: convite pendente, com as ações de aceitar ou recusar.
+            FirebaseNotificationRepository.TYPE_INVITE ->
+                if (invitation != null) bindInviteActions(row, invitation)
+                // UC17 A3: o convite não existe mais, mas o registro continua.
+                else showState(R.string.notification_invite_unavailable)
+            FirebaseNotificationRepository.TYPE_INVITE_ACCEPTED -> showState(R.string.notification_invite_accepted)
+            FirebaseNotificationRepository.TYPE_INVITE_DECLINED -> showState(R.string.notification_invite_declined)
+        }
+        row.setOnClickListener { openNotification(notification) }
+        return row
+    }
+
+    /** Abre a equipe ou a tarefa da notificação; se não existir mais, informa (UC17 A3). */
+    private fun openNotification(notification: Workspace.Notification) {
+        val target = Workspace.team(notification.teamId)
+        when {
+            target == null ->
+                if (Workspace.invitations.none { it.teamId == notification.teamId }) {
+                    message(getString(R.string.notification_team_unavailable))
+                }
+            notification.taskId.isEmpty() -> Navigation.open(this, "team", target.id)
+            target.tasks.any { it.id == notification.taskId } ->
+                Navigation.open(this, "task", target.id, notification.taskId)
+            else -> message(getString(R.string.notification_task_unavailable))
+        }
+    }
+
+    private fun bindInviteActions(row: View, invitation: Workspace.Invitation) {
+        row.findViewById<View>(R.id.notificationActions).visibility = View.VISIBLE
+        val accept = row.findViewById<View>(R.id.btnAcceptNotification)
+        val decline = row.findViewById<View>(R.id.btnDeclineNotification)
+        val buttons = listOf(accept, decline)
+        accept.setOnClickListener {
+            if (buttons.any { !it.isEnabled }) return@setOnClickListener
+            buttons.forEach { it.isEnabled = false }
             FirebaseTeamRepository.acceptInvitation(invitation, alive { result ->
                 result.onSuccess { joined -> Navigation.open(this, "team", joined.id); finish() }
                     .onFailure { error -> message(errorMessage(error)); render() }
             })
         }
-        click(R.id.btnDeclineInvite) {
-            if (invitation == null || inviteButtons.any { !it.isEnabled }) return@click
-            inviteButtons.forEach { it.isEnabled = false }
+        decline.setOnClickListener {
+            if (buttons.any { !it.isEnabled }) return@setOnClickListener
+            buttons.forEach { it.isEnabled = false }
             FirebaseTeamRepository.declineInvitation(invitation, alive { result ->
                 result.onSuccess { message(getString(R.string.screen_invite_declined)) }
                     .onFailure { error -> message(errorMessage(error)) }
@@ -232,8 +336,9 @@ open class WorkspaceActivity : AppCompatActivity() {
         text(R.id.tvTasksTabCount, current.tasks.count { it.status != Workspace.Status.FINISHED }.toString())
         text(R.id.tvMembersTabCount, current.members.size.toString())
         updateTeamCounters()
-        findViewById<View>(R.id.btnEditTeam)?.visibility = if (current.admin) View.VISIBLE else View.GONE
-        if (current.admin) click(R.id.btnEditTeam) { editTeam() }
+        // Só quem criou a equipe edita nome e descrição (UC04).
+        findViewById<View>(R.id.btnEditTeam)?.visibility = if (current.isCreator) View.VISIBLE else View.GONE
+        if (current.isCreator) click(R.id.btnEditTeam) { editTeam() }
         click(R.id.membersTab) {
             current.hasNewMembers = false
             updateTeamCounters()
@@ -364,6 +469,94 @@ open class WorkspaceActivity : AppCompatActivity() {
             insertion
         )
     }
+    /**
+     * Histórico (RF25): aberto pela equipe, mostra as tarefas finalizadas e as
+     * alterações recentes; aberto por uma tarefa, só as alterações dela.
+     */
+    private fun bindHistory() {
+        val current = team!!
+        val item = historyTask
+        bindTasks(true)
+        val anchor = findViewById<View>(android.R.id.content).findViewWithTag<View>("task_item") ?: return
+        val list = anchor.parent as ViewGroup
+        if (item != null) {
+            text(R.id.tvTasksTitle, getString(R.string.history_task_title))
+            (0 until list.childCount).map { list.getChildAt(it) }
+                .filter { it.tag == "task_item" }
+                .forEach { list.removeView(it) }
+        }
+        list.addView(TextView(this).apply {
+            text = getString(R.string.history_changes_section)
+            setTextColor(color(R.color.black))
+            textSize = 18f
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(0, if (item == null) dp(24) else 0, 0, dp(12))
+        })
+        val entries = item?.history ?: current.history
+        val loaded = item?.historyLoaded ?: current.historyLoaded
+        entries.forEach { list.addView(historyRow(list, it, showTask = item == null)) }
+        if (entries.isEmpty() && loaded) list.addView(emptyState(this, getString(R.string.history_empty)))
+    }
+
+    private fun historyRow(parent: ViewGroup, entry: Workspace.HistoryEntry, showTask: Boolean): View {
+        val row = layoutInflater.inflate(R.layout.item_history_entry, parent, false)
+        row.findViewById<TextView>(R.id.tvHistoryTask).apply {
+            text = entry.taskTitle
+            visibility = if (showTask) View.VISIBLE else View.GONE
+        }
+        row.findViewById<TextView>(R.id.tvHistoryAction).text = getString(historyAction(entry), entry.userName)
+        val detail = historyDetail(entry)
+        row.findViewById<TextView>(R.id.tvHistoryDetail).apply {
+            text = detail
+            visibility = if (detail.isNullOrEmpty()) View.GONE else View.VISIBLE
+        }
+        row.findViewById<TextView>(R.id.tvHistoryDate).text = DueDates.formatDateTime(entry.createdAt)
+        // Registros de tarefas que ainda existem abrem os detalhes delas.
+        if (showTask && team?.tasks?.any { it.id == entry.taskId } == true) {
+            row.setOnClickListener { go("task", entry.taskId) }
+        }
+        return row
+    }
+
+    private fun historyAction(entry: Workspace.HistoryEntry) = when (entry.type) {
+        FirebaseTaskRepository.EVENT_TASK_CREATED -> R.string.history_task_created
+        FirebaseTaskRepository.EVENT_TASK_UPDATED -> when (entry.field) {
+            FirebaseTaskRepository.FIELD_TITLE -> R.string.history_task_title_changed
+            FirebaseTaskRepository.FIELD_DESCRIPTION -> R.string.history_task_description_changed
+            FirebaseTaskRepository.FIELD_RESPONSIBLES -> R.string.history_task_responsibles_changed
+            else -> R.string.history_task_due_date_changed
+        }
+        FirebaseTaskRepository.EVENT_TASK_STATUS -> R.string.history_task_status_changed
+        FirebaseTaskRepository.EVENT_TASK_DELETED -> R.string.history_task_deleted
+        FirebaseTaskRepository.EVENT_COMMENT_CREATED -> R.string.history_comment_created
+        FirebaseTaskRepository.EVENT_COMMENT_UPDATED -> R.string.history_comment_updated
+        else -> R.string.history_comment_deleted
+    }
+
+    /** Valores anterior e novo (ou o texto do comentário publicado ou removido). */
+    private fun historyDetail(entry: Workspace.HistoryEntry): String? = when (entry.type) {
+        FirebaseTaskRepository.EVENT_TASK_UPDATED,
+        FirebaseTaskRepository.EVENT_TASK_STATUS,
+        FirebaseTaskRepository.EVENT_COMMENT_UPDATED ->
+            getString(R.string.history_value_change, historyValue(entry, entry.oldValue), historyValue(entry, entry.newValue))
+        FirebaseTaskRepository.EVENT_COMMENT_CREATED -> entry.newValue
+        FirebaseTaskRepository.EVENT_COMMENT_DELETED -> entry.oldValue
+        else -> null
+    }
+
+    private fun historyValue(entry: Workspace.HistoryEntry, value: String): String = when {
+        value.isEmpty() -> getString(R.string.history_empty_value)
+        entry.field == FirebaseTaskRepository.FIELD_STATUS -> getString(
+            when (value) {
+                FirebaseTaskRepository.STATUS_IN_PROGRESS -> R.string.screen_in_progress
+                FirebaseTaskRepository.STATUS_FINISHED -> R.string.screen_finished
+                else -> R.string.screen_pending
+            }
+        )
+        entry.field == FirebaseTaskRepository.FIELD_DUE_DATE -> DueDates.fromIso(value).ifEmpty { value }
+        else -> value
+    }
+
     private fun bindTask() {
         val item = task!!
         applyStatus(findViewById(R.id.tvStatusBadge), statusStyle(item))
@@ -374,14 +567,31 @@ open class WorkspaceActivity : AppCompatActivity() {
         }
         text(R.id.tvTaskTitle, item.title); text(R.id.tvDescription, item.description)
         text(R.id.tvResponsibles, responsiblesText(item)); text(R.id.tvDueDate, item.date)
+        // UC15: só responsáveis e administradores mudam a situação.
+        val canChangeStatus = team!!.canChangeStatus(item)
+        findViewById<View>(R.id.btnTaskAction)?.visibility = if (canChangeStatus) View.VISIBLE else View.GONE
+        if (!canChangeStatus && !team!!.admin) findViewById<View>(R.id.footerLayout)?.visibility = View.GONE
         click(R.id.btnTaskAction) {
             val button = findViewById<View>(R.id.btnTaskAction)
-            if (!button.isEnabled) return@click
-            button.isEnabled = false
-            FirebaseTaskRepository.advanceTask(team!!, item, alive { result ->
-                result.onFailure { error -> message(errorMessage(error)) }
-                render()
-            })
+            if (!button.isEnabled || !canChangeStatus) return@click
+            val advance = {
+                button.isEnabled = false
+                FirebaseTaskRepository.advanceTask(team!!, item, alive { result ->
+                    render()
+                    // Situação mudada por outra pessoa: busca a versão atual.
+                    result.onFailure { error -> message(errorMessage(error)); refresh() }
+                })
+            }
+            // Finalizar não tem volta, então pede confirmação.
+            if (item.nextStatus == Workspace.Status.FINISHED) {
+                activeDialog?.dismiss()
+                activeDialog = MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.task_finish_confirm_title)
+                    .setMessage(R.string.task_finish_confirm_message)
+                    .setNegativeButton(R.string.screen_cancel, null)
+                    .setPositiveButton(R.string.task_finish_confirm_button) { _, _ -> advance() }
+                    .show()
+            } else advance()
         }
         findViewById<View>(R.id.btnEditTask)?.visibility = if (team!!.admin) View.VISIBLE else View.GONE
         findViewById<View>(R.id.btnDeleteTask)?.visibility = if (team!!.admin) View.VISIBLE else View.GONE
@@ -405,7 +615,35 @@ open class WorkspaceActivity : AppCompatActivity() {
     private fun editTask(item: Workspace.Task?) = dialog(if (item == null) R.layout.dialog_add_task else R.layout.dialog_edit_task) { view, dialog ->
         val title = view.findViewById<EditText>(R.id.etTaskTitle).apply { setText(item?.title.orEmpty()); clearErrorOnChange() }
         val description = view.findViewById<EditText>(R.id.etDescription).apply { setText(item?.description.orEmpty()); clearErrorOnChange() }
-        val responsible = view.findViewById<EditText>(R.id.etResponsibles).apply { setText(item?.responsibles.orEmpty()) }
+        // UC14: os responsáveis são escolhidos entre os membros atuais da equipe.
+        val members = team!!.members.toList()
+        val selected = item?.responsibleIds.orEmpty().filter { id -> members.any { it.uid == id } }.toMutableList()
+        val responsible = view.findViewById<EditText>(R.id.etResponsibles).apply {
+            isFocusable = false
+            isClickable = true
+            fun showSelected() = setText(members.filter { it.uid in selected }.joinToString(", ") { it.name })
+            showSelected()
+            setOnClickListener {
+                val checked = BooleanArray(members.size) { members[it].uid in selected }
+                MaterialAlertDialogBuilder(this@WorkspaceActivity)
+                    .setTitle(R.string.task_responsibles_dialog_title)
+                    .setMultiChoiceItems(members.map { it.name }.toTypedArray(), checked) { _, index, isChecked ->
+                        checked[index] = isChecked
+                    }
+                    .setNegativeButton(R.string.screen_cancel, null)
+                    .setPositiveButton(R.string.confirm) { _, _ ->
+                        selected.clear()
+                        selected.addAll(members.filterIndexed { index, _ -> checked[index] }.map { it.uid })
+                        showSelected()
+                        showError(null)
+                    }
+                    .show()
+            }
+        }
+        // UC14 A2: quem saiu da equipe deixa de constar como responsável.
+        if (item != null && selected.size < item.responsibleIds.size) {
+            responsible.showError(getString(R.string.task_responsibles_removed))
+        }
         val date = view.findViewById<EditText>(R.id.etDueDate).apply {
             setText(item?.date.orEmpty())
             isFocusable = false
@@ -416,7 +654,6 @@ open class WorkspaceActivity : AppCompatActivity() {
         save.setOnClickListener {
             val newTitle = title.text.toString().trim()
             val newDescription = description.text.toString().trim()
-            val newResponsibles = responsible.text.toString().trim()
             val newDate = date.text.toString().trim()
             val titleError = when {
                 newTitle.isEmpty() -> getString(R.string.screen_task_title_required)
@@ -430,9 +667,12 @@ open class WorkspaceActivity : AppCompatActivity() {
                     getString(R.string.task_description_too_long_error, FirebaseTaskRepository.MAX_DESCRIPTION_LENGTH)
                 else -> null
             }
-            val responsiblesError = if (newResponsibles.length > FirebaseTaskRepository.MAX_RESPONSIBLES_LENGTH)
-                getString(R.string.task_responsibles_too_long_error, FirebaseTaskRepository.MAX_RESPONSIBLES_LENGTH)
-            else null
+            val responsiblesError = when {
+                selected.isEmpty() -> getString(R.string.task_responsibles_required)
+                selected.size > FirebaseTaskRepository.MAX_RESPONSIBLES ->
+                    getString(R.string.task_responsibles_too_many, FirebaseTaskRepository.MAX_RESPONSIBLES)
+                else -> null
+            }
             val dateError = if (DueDates.isValid(newDate)) null else getString(R.string.screen_due_date_invalid)
             title.showError(titleError)
             description.showError(descriptionError)
@@ -444,13 +684,13 @@ open class WorkspaceActivity : AppCompatActivity() {
             if (!save.isEnabled) return@setOnClickListener
             save.isEnabled = false
             if (item == null) {
-                FirebaseTaskRepository.createTask(team!!, newTitle, newDescription, newResponsibles, newDate, alive { result ->
+                FirebaseTaskRepository.createTask(team!!, newTitle, newDescription, selected.toList(), newDate, alive { result ->
                     save.isEnabled = true
                     result.onSuccess { created -> dialog.dismiss(); go("task", created.id) }
                         .onFailure { error -> title.showError(errorMessage(error)) }
                 })
             } else {
-                FirebaseTaskRepository.updateTask(team!!, item, newTitle, newDescription, newResponsibles, newDate, alive { result ->
+                FirebaseTaskRepository.updateTask(team!!, item, newTitle, newDescription, selected.toList(), newDate, alive { result ->
                     save.isEnabled = true
                     result.onSuccess { dialog.dismiss(); render() }
                         .onFailure { error -> title.showError(errorMessage(error)) }
@@ -489,6 +729,10 @@ open class WorkspaceActivity : AppCompatActivity() {
             row.setOnClickListener { commentHistory(comment) }
             val edited = row.findViewById<TextView>(R.id.btnCommentHistory)
             edited.visibility = if (comment.history.isEmpty()) View.GONE else View.VISIBLE
+            // UC16: data de publicação junto ao autor.
+            DueDates.formatDateTime(comment.createdAt).takeIf { it.isNotEmpty() }?.let { date ->
+                row.findViewById<TextView>(R.id.tvCommentAuthor).append(getString(R.string.comment_date_suffix, date))
+            }
             val edit = row.findViewById<View>(R.id.btnEditComment1)
             // Só o autor ou um administrador edita ou apaga o comentário.
             val canModerate = team!!.admin || comment.authorId == Workspace.profile.uid
@@ -506,6 +750,20 @@ open class WorkspaceActivity : AppCompatActivity() {
             parent.addView(row, insertion + index)
         }
         if (task!!.comments.isEmpty() && task!!.commentsLoaded) parent.addView(emptyState(this, getString(R.string.screen_no_comments)), insertion)
+        // Histórico da tarefa (RF25), aberto a partir dos detalhes dela.
+        val shown = task!!.comments.size + if (task!!.comments.isEmpty() && task!!.commentsLoaded) 1 else 0
+        parent.addView(
+            com.google.android.material.button.MaterialButton(
+                this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
+                text = getString(R.string.task_history_button)
+                setIconResource(R.drawable.ic_history)
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    .apply { topMargin = dp(16) }
+                setOnClickListener { go("history", task!!.id) }
+            },
+            insertion + shown
+        )
     }
     private fun removeComment(comment: Workspace.Comment) =
         confirm(R.layout.dialog_remove_comment, R.id.btnConfirmRemoveComment) {
@@ -542,6 +800,13 @@ open class WorkspaceActivity : AppCompatActivity() {
     }
     private fun commentHistory(comment: Workspace.Comment) = dialog(R.layout.dialog_comment_history) { view, dialog ->
         val versions = view.findViewById<LinearLayout>(R.id.commentHistoryVersions)
+        // UC16: autor do comentário e data de cada versão.
+        versions.addView(TextView(this).apply {
+            text = getString(R.string.comment_author_label, comment.author)
+            setTextColor(color(R.color.gray))
+            textSize = 14f
+            setPadding(0, 0, 0, dp(8))
+        })
         (comment.history + comment.text).forEachIndexed { index, value ->
             if (index > 0) versions.addView(ImageView(this).apply {
                 setImageResource(R.drawable.ic_arrow_back)
@@ -555,6 +820,10 @@ open class WorkspaceActivity : AppCompatActivity() {
                 if (index == comment.history.size) "Versão atual" else "Versão ${index + 1}"
             card.findViewById<TextView>(R.id.tvVersionText).text = value
             versions.addView(card)
+            val versionDate = if (index == comment.history.size) comment.updatedAt else comment.historyDates.getOrNull(index)
+            DueDates.formatDateTime(versionDate).takeIf { it.isNotEmpty() }?.let { date ->
+                card.findViewById<TextView>(R.id.tvVersionLabel).append(getString(R.string.comment_date_suffix, date))
+            }
         }
         view.findViewById<View>(R.id.btnCloseHistory).setOnClickListener { dialog.dismiss() }
     }
@@ -597,6 +866,10 @@ open class WorkspaceActivity : AppCompatActivity() {
             roleLabel.text = getString(R.string.screen_role_format, member.role)
             roleSpinner.visibility = if (locked) View.GONE else View.VISIBLE
             removeButton.visibility = if (locked) View.GONE else View.VISIBLE
+            // UC10 A1 / UC11 A2: explica por que o papel não pode ser alterado.
+            if (locked) roleLabel.setOnClickListener {
+                message(getString(if (member.uid == Workspace.profile.uid) R.string.role_locked_self else R.string.role_locked_creator))
+            }
             if (!locked) {
                 val options = listOf("Administrador(a)", "Membro")
                 roleSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options).apply {
@@ -608,9 +881,26 @@ open class WorkspaceActivity : AppCompatActivity() {
                     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                         // O Spinner também chama este método ao exibir a seleção inicial.
                         if (options[position] == member.role) return
-                        FirebaseTeamRepository.setAdmin(team!!, member, options[position] == "Administrador(a)", alive { result ->
-                            result.onFailure { error -> message(errorMessage(error)); render() }
-                        })
+                        // UC10: confirma antes de salvar; ao cancelar, o papel atual é mantido.
+                        val newRole = options[position]
+                        var confirmed = false
+                        activeDialog?.dismiss()
+                        activeDialog = MaterialAlertDialogBuilder(this@WorkspaceActivity)
+                            .setTitle(R.string.role_change_title)
+                            .setMessage(getString(R.string.role_change_message, member.name, newRole))
+                            .setNegativeButton(R.string.screen_cancel, null)
+                            .setPositiveButton(R.string.role_change_button) { _, _ ->
+                                confirmed = true
+                                FirebaseTeamRepository.setAdmin(team!!, member, newRole == "Administrador(a)", alive { result ->
+                                    result.onSuccess { message(getString(R.string.role_changed, member.name, newRole)) }
+                                        .onFailure { error -> message(errorMessage(error)) }
+                                    render()
+                                })
+                            }
+                            .setOnDismissListener {
+                                if (!confirmed) roleSpinner.setSelection(options.indexOf(member.role).coerceAtLeast(0))
+                            }
+                            .show()
                     }
                 }
                 removeButton.setOnClickListener {

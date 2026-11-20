@@ -19,10 +19,12 @@ import java.security.SecureRandom
  * Equipes no Cloud Firestore.
  *
  * - `teams/{teamId}`: um documento por equipe com nome, descrição, código,
- *   criador (`createdBy`), `memberIds`, `adminIds`, `memberNames` ({uid: nome})
- *   e `invitedEmails` (convites pendentes).
- * - `teamCodes/{code}`: aponta o código de convite para a equipe. Como o
- *   documento só pode ser criado uma vez, dois times nunca têm o mesmo código.
+ *   criador (`createdBy`), `memberIds`, `adminIds`, `memberNames` ({uid: nome}),
+ *   `memberEmails` ({uid: e-mail}, para não convidar quem já participa) e
+ *   `invitedEmails` (convites pendentes).
+ * - `teamCodes/{code}`: aponta o código de convite para a equipe e guarda nome
+ *   e descrição, exibidos antes de confirmar o ingresso. Como a equipe
+ *   apontada nunca muda, dois times nunca têm o mesmo código.
  *
  * Cada operação altera só os campos que lhe dizem respeito, usando
  * arrayUnion/arrayRemove para não sobrescrever mudanças feitas ao mesmo tempo
@@ -34,9 +36,14 @@ import java.security.SecureRandom
 object FirebaseTeamRepository {
     const val MAX_NAME_LENGTH = 100
     const val MAX_DESCRIPTION_LENGTH = 1000
+    /** RNF12: cada usuário participa de até 50 equipes. */
+    const val MAX_TEAMS = 50
 
     /** Erro previsto, com a mensagem já pronta para a tela. */
-    class TeamException(@param:StringRes val messageRes: Int) : Exception()
+    class TeamException(@param:StringRes val messageRes: Int, vararg val args: Any) : Exception()
+
+    /** Equipe encontrada pelo código, exibida para o usuário confirmar o ingresso (UC06). */
+    data class TeamPreview(val teamId: String, val name: String, val description: String)
 
     private val auth: FirebaseAuth
         get() = FirebaseAuth.getInstance()
@@ -76,9 +83,6 @@ object FirebaseTeamRepository {
                 val invitations = invitesTask.result.documents
                     .filter { it.id !in memberOf }
                     .map { Workspace.Invitation(it.id, it.getString("name").orEmpty()) }
-                if (invitations.any { new -> Workspace.invitations.none { it.teamId == new.teamId } }) {
-                    Workspace.hasUnreadNotifications = true
-                }
                 Workspace.invitations.clear()
                 Workspace.invitations.addAll(invitations)
             }
@@ -86,6 +90,10 @@ object FirebaseTeamRepository {
             // Tarefas de cada equipe, para a contagem de tarefas ativas na lista.
             // Se a busca de uma equipe falhar, ela mantém as tarefas que já tinha.
             Tasks.whenAllComplete(loaded.map { FirebaseTaskRepository.refreshTasks(it) })
+        }.continueWithTask { teamsLoaded ->
+            if (!teamsLoaded.isSuccessful) throw teamsLoaded.exception ?: IllegalStateException()
+            // Avisos dos convites encontrados acima e demais notificações.
+            FirebaseNotificationRepository.refresh()
         }.addOnCompleteListener { task -> deliver(task, onComplete) {} }
     }
 
@@ -95,8 +103,10 @@ object FirebaseTeamRepository {
         onComplete: (Result<Workspace.Team>) -> Unit
     ) {
         val user = auth.currentUser ?: return onComplete(Result.failure(notSignedIn()))
+        if (Workspace.teams.size >= MAX_TEAMS) return onComplete(Result.failure(teamLimitReached()))
         val teamRef = teams.document()
         val userRef = firestore.collection(USERS_COLLECTION).document(user.uid)
+        val email = userEmail(user)
 
         firestore.runTransaction { transaction ->
             // Em uma transação, todas as leituras precisam vir antes das escritas.
@@ -114,6 +124,7 @@ object FirebaseTeamRepository {
                     "memberIds" to listOf(user.uid),
                     "adminIds" to emptyList<String>(),
                     "memberNames" to mapOf(user.uid to memberName),
+                    "memberEmails" to mapOf(user.uid to email),
                     "invitedEmails" to emptyList<String>(),
                     "createdAt" to now,
                     "updatedAt" to now
@@ -121,7 +132,12 @@ object FirebaseTeamRepository {
             )
             transaction.set(
                 teamCodes.document(code),
-                mapOf("teamId" to teamRef.id, "createdAt" to now)
+                mapOf(
+                    "teamId" to teamRef.id,
+                    "name" to name,
+                    "description" to description,
+                    "createdAt" to now
+                )
             )
             code to memberName
         }.addOnCompleteListener { task ->
@@ -133,7 +149,7 @@ object FirebaseTeamRepository {
                     admin = true,
                     code = code,
                     tasks = mutableListOf(),
-                    members = mutableListOf(Workspace.Member(memberName, CREATOR_LABEL, user.uid)),
+                    members = mutableListOf(Workspace.Member(memberName, CREATOR_LABEL, user.uid, email)),
                     createdBy = user.uid,
                     tasksLoaded = true
                 ).also { Workspace.teams.add(it) }
@@ -141,19 +157,25 @@ object FirebaseTeamRepository {
         }
     }
 
+    /** Só o criador edita (UC04). A prévia em teamCodes muda no mesmo lote. */
     fun updateTeam(
         team: Workspace.Team,
         name: String,
         description: String,
         onComplete: (Result<Unit>) -> Unit
     ) {
-        teams.document(team.id).update(
-            mapOf(
-                "name" to name,
-                "description" to description,
-                "updatedAt" to FieldValue.serverTimestamp()
+        firestore.batch()
+            .update(
+                teams.document(team.id),
+                mapOf(
+                    "name" to name,
+                    "description" to description,
+                    "updatedAt" to FieldValue.serverTimestamp()
+                )
             )
-        ).addOnCompleteListener { task ->
+            .update(teamCodes.document(team.code), mapOf("name" to name, "description" to description))
+            .commit()
+            .addOnCompleteListener { task ->
             deliver(task, onComplete) {
                 team.name = name
                 team.description = description
@@ -162,12 +184,12 @@ object FirebaseTeamRepository {
     }
 
     /**
-     * Apaga as tarefas e comentários, depois a equipe e o código. Só o criador
-     * tem permissão. A equipe vai por último porque as regras das tarefas
-     * consultam o documento dela.
+     * Apaga tarefas, comentários e histórico, depois a equipe e o código. Só o
+     * criador tem permissão. A equipe vai por último porque as regras das
+     * tarefas consultam o documento dela.
      */
     fun deleteTeam(team: Workspace.Team, onComplete: (Result<Unit>) -> Unit) {
-        FirebaseTaskRepository.deleteAllTasks(team.id).continueWithTask { tasksDeleted ->
+        FirebaseTaskRepository.deleteAllTeamData(team.id).continueWithTask { tasksDeleted ->
             if (!tasksDeleted.isSuccessful) throw tasksDeleted.exception ?: IllegalStateException()
             val batch = firestore.batch().delete(teams.document(team.id))
             if (team.code.isNotBlank()) batch.delete(teamCodes.document(team.code))
@@ -185,21 +207,45 @@ object FirebaseTeamRepository {
         val normalized = emails.map { it.trim().lowercase() }.distinct()
         teams.document(team.id)
             .update("invitedEmails", FieldValue.arrayUnion(*normalized.toTypedArray()))
-            .addOnCompleteListener { task -> deliver(task, onComplete) {} }
+            .addOnCompleteListener { task ->
+                deliver(task, onComplete) {
+                    team.invitedEmails.addAll(normalized - team.invitedEmails.toSet())
+                }
+            }
     }
 
-    fun joinByCode(code: String, onComplete: (Result<Workspace.Team>) -> Unit) {
-        val user = auth.currentUser ?: return onComplete(Result.failure(notSignedIn()))
+    /**
+     * UC06, passo 4: valida o código e devolve a equipe para o usuário
+     * confirmar. Quem já participa é avisado e nenhum vínculo novo é criado.
+     */
+    fun findTeamByCode(code: String, onComplete: (Result<TeamPreview>) -> Unit) {
+        if (auth.currentUser == null) return onComplete(Result.failure(notSignedIn()))
         val normalized = code.trim().uppercase()
         if (!CODE_PATTERN.matches(normalized)) {
             return onComplete(Result.failure(TeamException(R.string.screen_team_not_found)))
         }
 
-        teamCodes.document(normalized).get().continueWithTask { task ->
-            val teamId = task.result.getString("teamId")
+        teamCodes.document(normalized).get().continueWith { task ->
+            val snapshot = task.result
+            val teamId = snapshot.getString("teamId")
                 ?: throw TeamException(R.string.screen_team_not_found)
-            Workspace.team(teamId)?.let { Tasks.forResult(it) } ?: join(user, teamId)
+            if (Workspace.team(teamId) != null) throw TeamException(R.string.team_already_member)
+            TeamPreview(
+                teamId,
+                snapshot.getString("name").orEmpty(),
+                snapshot.getString("description").orEmpty()
+            )
         }.addOnCompleteListener { task -> deliver(task, onComplete) { it } }
+    }
+
+    /** UC06, passos 5 e 6: entra na equipe confirmada como membro comum. */
+    fun joinTeam(preview: TeamPreview, onComplete: (Result<Workspace.Team>) -> Unit) {
+        val user = auth.currentUser ?: return onComplete(Result.failure(notSignedIn()))
+        Workspace.team(preview.teamId)?.let {
+            return onComplete(Result.failure(TeamException(R.string.team_already_member)))
+        }
+        if (Workspace.teams.size >= MAX_TEAMS) return onComplete(Result.failure(teamLimitReached()))
+        join(user, preview.teamId).addOnCompleteListener { task -> deliver(task, onComplete) { it } }
     }
 
     fun acceptInvitation(
@@ -207,9 +253,11 @@ object FirebaseTeamRepository {
         onComplete: (Result<Workspace.Team>) -> Unit
     ) {
         val user = auth.currentUser ?: return onComplete(Result.failure(notSignedIn()))
+        if (Workspace.teams.size >= MAX_TEAMS) return onComplete(Result.failure(teamLimitReached()))
         join(user, invitation.teamId).addOnCompleteListener { task ->
             deliver(task, onComplete) { team ->
                 Workspace.invitations.removeAll { it.teamId == invitation.teamId }
+                FirebaseNotificationRepository.answerInvite(invitation.teamId, accepted = true)
                 team
             }
         }
@@ -221,10 +269,11 @@ object FirebaseTeamRepository {
     ) {
         val user = auth.currentUser ?: return onComplete(Result.failure(notSignedIn()))
         teams.document(invitation.teamId)
-            .update("invitedEmails", FieldValue.arrayRemove(user.email?.lowercase().orEmpty()))
+            .update("invitedEmails", FieldValue.arrayRemove(userEmail(user)))
             .addOnCompleteListener { task ->
                 deliver(task, onComplete) {
                     Workspace.invitations.removeAll { it.teamId == invitation.teamId }
+                    FirebaseNotificationRepository.answerInvite(invitation.teamId, accepted = false)
                 }
             }
     }
@@ -261,23 +310,29 @@ object FirebaseTeamRepository {
         }
     }
 
-    /** Atualiza o nome exibido do usuário em todas as equipes dele, após editar o perfil. */
-    fun syncMemberName(name: String) {
-        val uid = auth.currentUser?.uid ?: return
+    /** Atualiza o nome e o e-mail do usuário em todas as equipes dele, após editar o perfil. */
+    fun syncMemberProfile(name: String) {
+        val user = auth.currentUser ?: return
         val memberName = name.trim().take(MAX_NAME_LENGTH).ifEmpty { return }
+        val email = userEmail(user)
         Workspace.teams.forEach { team ->
-            val member = team.members.firstOrNull { it.uid == uid } ?: return@forEach
-            if (member.name == memberName) return@forEach
+            val index = team.members.indexOfFirst { it.uid == user.uid }
+            if (index < 0) return@forEach
+            val member = team.members[index]
+            if (member.name == memberName && member.email == email) return@forEach
             teams.document(team.id)
-                .update(FieldPath.of("memberNames", uid), memberName)
-                .addOnSuccessListener { member.name = memberName }
+                .update(
+                    FieldPath.of("memberNames", user.uid), memberName,
+                    FieldPath.of("memberEmails", user.uid), email
+                )
+                .addOnSuccessListener { team.members[index] = member.copy(name = memberName, email = email) }
         }
     }
 
     fun errorMessage(context: Context, error: Throwable): String {
         val cause = unwrapFirebaseError(error)
         return when {
-            cause is TeamException -> context.getString(cause.messageRes)
+            cause is TeamException -> context.getString(cause.messageRes, *cause.args)
             cause is FirebaseFirestoreException &&
                 cause.code == FirebaseFirestoreException.Code.PERMISSION_DENIED ->
                 context.getString(R.string.team_permission_denied)
@@ -297,7 +352,8 @@ object FirebaseTeamRepository {
                 FieldPath.of("memberIds"), FieldValue.arrayUnion(user.uid),
                 FieldPath.of("memberNames", user.uid),
                 memberName(user, if (profileTask.isSuccessful) profileTask.result else null),
-                FieldPath.of("invitedEmails"), FieldValue.arrayRemove(user.email?.lowercase().orEmpty())
+                FieldPath.of("memberEmails", user.uid), userEmail(user),
+                FieldPath.of("invitedEmails"), FieldValue.arrayRemove(userEmail(user))
             )
         }.continueWithTask { updateTask ->
             if (!updateTask.isSuccessful) throw updateTask.exception ?: IllegalStateException()
@@ -310,12 +366,13 @@ object FirebaseTeamRepository {
         }
     }
 
-    /** Remove um membro: tira o uid das listas e o nome do mapa, em uma só gravação. */
+    /** Remove um membro: tira o uid das listas e o nome e o e-mail dos mapas, em uma só gravação. */
     private fun removeFromTeam(teamId: String, uid: String): Task<Void> =
         teams.document(teamId).update(
             FieldPath.of("memberIds"), FieldValue.arrayRemove(uid),
             FieldPath.of("adminIds"), FieldValue.arrayRemove(uid),
-            FieldPath.of("memberNames", uid), FieldValue.delete()
+            FieldPath.of("memberNames", uid), FieldValue.delete(),
+            FieldPath.of("memberEmails", uid), FieldValue.delete()
         )
 
     private fun toTeam(document: DocumentSnapshot, uid: String): Workspace.Team {
@@ -324,6 +381,7 @@ object FirebaseTeamRepository {
         val memberIds = document.stringList("memberIds")
         val adminIds = document.stringList("adminIds").toSet()
         val names = document.get("memberNames") as? Map<*, *> ?: emptyMap<String, Any>()
+        val emails = document.get("memberEmails") as? Map<*, *> ?: emptyMap<String, Any>()
 
         // O criador aparece primeiro; os demais, na ordem em que entraram.
         val members = memberIds.sortedBy { it != createdBy }.map { memberId ->
@@ -334,7 +392,8 @@ object FirebaseTeamRepository {
                     in adminIds -> ADMIN_LABEL
                     else -> MEMBER_LABEL
                 },
-                uid = memberId
+                uid = memberId,
+                email = emails[memberId] as? String ?: ""
             )
         }
         val previousIds = previous?.members?.map { it.uid }?.toSet()
@@ -352,9 +411,17 @@ object FirebaseTeamRepository {
             hasNewTasks = previous?.hasNewTasks ?: false,
             hasNewMembers = previous?.hasNewMembers == true || someoneJoined,
             createdBy = createdBy,
-            tasksLoaded = previous?.tasksLoaded ?: false
+            tasksLoaded = previous?.tasksLoaded ?: false,
+            invitedEmails = document.stringList("invitedEmails").toMutableList(),
+            history = previous?.history ?: mutableListOf(),
+            historyLoaded = previous?.historyLoaded ?: false
         )
     }
+
+    /** As regras comparam com o e-mail da conta em minúsculas. */
+    private fun userEmail(user: FirebaseUser) = user.email?.lowercase().orEmpty()
+
+    private fun teamLimitReached() = TeamException(R.string.team_limit_reached, MAX_TEAMS)
 
     private fun memberName(user: FirebaseUser, profile: DocumentSnapshot?): String =
         listOf(profile?.getString("name"), user.displayName, user.email)

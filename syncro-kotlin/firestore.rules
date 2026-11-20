@@ -1,5 +1,11 @@
 rules_version = '2';
 
+// Regras do Syncro. Cada operação do app altera só os campos que lhe dizem
+// respeito, e as regras conferem o antes e o depois.
+//
+// As consultas a outros documentos (get, exists, getAfter) são limitadas por
+// requisição (10, ou 20 em lotes). Por isso o documento da equipe é lido uma
+// única vez em cada regra e passado como parâmetro para as funções.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
@@ -10,51 +16,152 @@ service cloud.firestore {
       return request.auth.token.email.lower();
     }
 
+    function me() {
+      return [request.auth.uid].toSet();
+    }
+
     function teamPath(teamId) {
       return /databases/$(database)/documents/teams/$(teamId);
     }
 
-    function isTeamMember(teamId) {
-      return signedIn() && request.auth.uid in get(teamPath(teamId)).data.memberIds;
+    function taskPath(teamId, taskId) {
+      return /databases/$(database)/documents/teams/$(teamId)/tasks/$(taskId);
     }
 
-    function isTeamAdmin(teamId) {
-      let team = get(teamPath(teamId)).data;
-      return signedIn()
-        && (request.auth.uid == team.createdBy || request.auth.uid in team.adminIds);
+    function commentPath(teamId, taskId, commentId) {
+      return /databases/$(database)/documents/teams/$(teamId)/tasks/$(taskId)/comments/$(commentId);
+    }
+
+    function teamCodePath(code) {
+      return /databases/$(database)/documents/teamCodes/$(code);
+    }
+
+    // `team` é o conteúdo (data) do documento da equipe.
+    function isMemberOf(team) {
+      return request.auth.uid in team.memberIds;
+    }
+
+    function isAdminOf(team) {
+      return request.auth.uid == team.createdBy || request.auth.uid in team.adminIds;
+    }
+
+    function validName(name) {
+      return name is string && name.size() > 0 && name.size() <= 100;
+    }
+
+    function changed() {
+      return request.resource.data.diff(resource.data).affectedKeys();
     }
 
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if signedIn() && request.auth.uid == userId;
 
-      allow create: if request.auth != null
+      allow create: if signedIn()
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly([
           'name', 'email', 'createdAt', 'updatedAt'
         ]);
 
-      allow update: if request.auth != null
+      allow update: if signedIn()
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly([
           'name', 'email', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.createdAt == resource.data.createdAt;
 
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      allow delete: if signedIn() && request.auth.uid == userId;
+
+      // Notificações do usuário (RF26/UC17): conteúdo, visto e data, além do
+      // vínculo com o evento (equipe e tarefa) e de quem o causou.
+      match /notifications/{notificationId} {
+        function inviteTypes() {
+          return ['team_invite', 'team_invite_accepted', 'team_invite_declined'];
+        }
+
+        function taskTypes() {
+          return ['task_assigned', 'task_status', 'task_comment'];
+        }
+
+        function validNotification(n) {
+          return n.keys().hasOnly([
+              'type', 'content', 'seen', 'createdAt', 'teamId', 'teamName', 'taskId', 'actorId'
+            ])
+            && n.keys().hasAll([
+              'type', 'content', 'seen', 'createdAt', 'teamId', 'teamName', 'taskId', 'actorId'
+            ])
+            && (n.type in inviteTypes() || n.type in taskTypes())
+            && n.content is string && n.content.size() > 0 && n.content.size() <= 500
+            && n.seen is bool
+            && n.createdAt is timestamp
+            && n.teamId is string && n.teamId.size() > 0
+            && n.teamName is string && n.teamName.size() <= 100
+            && n.taskId is string
+            && n.actorId is string;
+        }
+
+        // O próprio convidado registra o aviso ao encontrar o convite pendente,
+        // já que quem convida conhece só o e-mail.
+        function ownInvite(n, team) {
+          return request.auth.uid == userId
+            && n.type == 'team_invite'
+            && notificationId == 'invite_' + n.teamId
+            && n.taskId == ''
+            && myEmail() in team.invitedEmails
+            && n.teamName == team.name;
+        }
+
+        // Um membro avisa outro sobre uma tarefa da equipe: atribuição para
+        // os novos responsáveis; mudança de situação e comentário para os
+        // responsáveis e para quem criou a tarefa.
+        function taskNoticeFor(n, team, task) {
+          return request.auth.uid != userId
+            && n.type in taskTypes()
+            && isMemberOf(team)
+            && userId in team.memberIds
+            && n.teamName == team.name
+            && (n.type == 'task_assigned'
+              ? userId in task.responsibleIds
+              : (userId in task.responsibleIds || userId == task.createdBy));
+        }
+
+        function inviteNotice(n) {
+          return ownInvite(n, get(teamPath(n.teamId)).data);
+        }
+
+        function taskNotice(n) {
+          return taskNoticeFor(n, get(teamPath(n.teamId)).data, getAfter(taskPath(n.teamId, n.taskId)).data);
+        }
+
+        allow read, delete: if signedIn() && request.auth.uid == userId;
+
+        allow create: if signedIn()
+          && validNotification(request.resource.data)
+          && request.resource.data.seen == false
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.actorId == request.auth.uid
+          && (request.resource.data.type == 'team_invite'
+            ? inviteNotice(request.resource.data)
+            : taskNotice(request.resource.data));
+
+        // O dono marca como lida e registra a resposta ao convite (ou o
+        // reabre, quando é convidado de novo).
+        allow update: if signedIn()
+          && request.auth.uid == userId
+          && validNotification(request.resource.data)
+          && changed().hasOnly(['seen', 'type', 'createdAt'])
+          && (!changed().hasAny(['type'])
+            || (resource.data.type in inviteTypes() && request.resource.data.type in inviteTypes()))
+          && (!changed().hasAny(['createdAt']) || request.resource.data.createdAt == request.time);
+      }
     }
 
     // Uma equipe é um único documento:
     //   memberIds     uids de todos os membros (o criador sempre incluído)
     //   adminIds      uids dos administradores (o criador não entra aqui)
     //   memberNames   { uid: nome exibido } para cada membro
+    //   memberEmails  { uid: e-mail } para cada membro, para não convidar quem já participa
     //   invitedEmails e-mails convidados que ainda não responderam
-    // Cada operação do app altera só os campos que lhe dizem respeito, e as
-    // regras abaixo conferem o antes e o depois.
     match /teams/{teamId} {
-      function isMember(team) {
-        return request.auth.uid in team.memberIds;
-      }
-
       function isInvited(team) {
         return myEmail() in team.invitedEmails;
       }
@@ -63,39 +170,27 @@ service cloud.firestore {
         return request.auth.uid == team.createdBy;
       }
 
-      function isAdmin(team) {
-        return isCreator(team) || request.auth.uid in team.adminIds;
-      }
-
-      function changed() {
-        return request.resource.data.diff(resource.data).affectedKeys();
-      }
-
       function namesDiff() {
         return request.resource.data.memberNames.diff(resource.data.memberNames);
       }
 
-      function me() {
-        return [request.auth.uid].toSet();
+      function emailsDiff() {
+        return request.resource.data.memberEmails.diff(resource.data.memberEmails);
       }
 
       function validTeamName(name) {
         return name is string && name == name.trim() && name.size() > 0 && name.size() <= 100;
       }
 
-      function validMemberName(name) {
-        return name is string && name.size() > 0 && name.size() <= 100;
-      }
-
       // Vale para qualquer estado salvo da equipe.
       function validTeam(team) {
         return team.keys().hasOnly([
             'name', 'description', 'code', 'createdBy', 'memberIds', 'adminIds',
-            'memberNames', 'invitedEmails', 'createdAt', 'updatedAt'
+            'memberNames', 'memberEmails', 'invitedEmails', 'createdAt', 'updatedAt'
           ])
           && team.keys().hasAll([
             'name', 'description', 'code', 'createdBy', 'memberIds', 'adminIds',
-            'memberNames', 'invitedEmails', 'createdAt', 'updatedAt'
+            'memberNames', 'memberEmails', 'invitedEmails', 'createdAt', 'updatedAt'
           ])
           && validTeamName(team.name)
           && team.description is string && team.description.size() <= 1000
@@ -109,6 +204,8 @@ service cloud.firestore {
           && !(team.createdBy in team.adminIds)
           && team.memberNames is map
           && team.memberNames.keys().toSet() == team.memberIds.toSet()
+          && team.memberEmails is map
+          && team.memberEmails.keys().toSet() == team.memberIds.toSet()
           && team.invitedEmails is list && team.invitedEmails.size() <= 50;
       }
 
@@ -117,49 +214,65 @@ service cloud.firestore {
           == resource.data.invitedEmails.toSet().difference([myEmail()].toSet());
       }
 
-      // Administradores editam nome e descrição.
-      function editInfo() {
-        return isAdmin(resource.data)
-          && changed().hasOnly(['name', 'description', 'updatedAt'])
-          && request.resource.data.updatedAt == request.time;
+      // Nome e e-mail do próprio usuário, gravados ao entrar e ao editar o perfil.
+      function myEntryIsValid() {
+        return validName(request.resource.data.memberNames[request.auth.uid])
+          && request.resource.data.memberEmails[request.auth.uid] == myEmail();
       }
 
-      // Administradores convidam (ou cancelam convites) por e-mail.
+      // Só o criador edita nome e descrição (UC04). A prévia mostrada a quem
+      // entra por código (teamCodes) é atualizada no mesmo lote.
+      function editInfo() {
+        let codeAfter = getAfter(teamCodePath(resource.data.code)).data;
+        return isCreator(resource.data)
+          && changed().hasOnly(['name', 'description', 'updatedAt'])
+          && request.resource.data.updatedAt == request.time
+          && codeAfter.name == request.resource.data.name
+          && codeAfter.description == request.resource.data.description;
+      }
+
+      // Administradores convidam por e-mail, mas não quem já é membro (UC08 A2).
       function invite() {
-        return isAdmin(resource.data) && changed().hasOnly(['invitedEmails']);
+        return isAdminOf(resource.data)
+          && changed().hasOnly(['invitedEmails'])
+          && !request.resource.data.invitedEmails.hasAny(resource.data.memberEmails.values());
       }
 
       // Administradores removem membros e mudam papéis. Ninguém entra por aqui,
-      // nenhum nome muda, e validTeam garante que o criador continua na equipe
-      // e fora de adminIds.
+      // nenhum nome ou e-mail muda, e validTeam garante que o criador continua
+      // na equipe e fora de adminIds.
       function manageMembers() {
-        return isAdmin(resource.data)
-          && changed().hasOnly(['memberIds', 'adminIds', 'memberNames'])
+        return isAdminOf(resource.data)
+          && changed().hasOnly(['memberIds', 'adminIds', 'memberNames', 'memberEmails'])
           && resource.data.memberIds.toSet().hasAll(request.resource.data.memberIds)
           && namesDiff().addedKeys().size() == 0
-          && namesDiff().changedKeys().size() == 0;
+          && namesDiff().changedKeys().size() == 0
+          && emailsDiff().addedKeys().size() == 0
+          && emailsDiff().changedKeys().size() == 0;
       }
 
       // Entrar como membro comum, por código ou aceitando um convite. O id da
       // equipe só é obtido consultando teamCodes/{código} ou por convite, já que
       // quem não é membro nem convidado não consegue ler nem listar equipes.
       function join() {
-        return !isMember(resource.data)
-          && changed().hasOnly(['memberIds', 'memberNames', 'invitedEmails'])
+        return !isMemberOf(resource.data)
+          && changed().hasOnly(['memberIds', 'memberNames', 'memberEmails', 'invitedEmails'])
           && request.resource.data.memberIds.toSet() == resource.data.memberIds.toSet().union(me())
           && namesDiff().affectedKeys() == me()
-          && validMemberName(request.resource.data.memberNames[request.auth.uid])
+          && emailsDiff().affectedKeys() == me()
+          && myEntryIsValid()
           && invitesWithoutMe();
       }
 
       // Membros saem da equipe. O criador não pode sair, só apagar a equipe.
       function leave() {
-        return isMember(resource.data)
+        return isMemberOf(resource.data)
           && !isCreator(resource.data)
-          && changed().hasOnly(['memberIds', 'adminIds', 'memberNames'])
+          && changed().hasOnly(['memberIds', 'adminIds', 'memberNames', 'memberEmails'])
           && request.resource.data.memberIds.toSet() == resource.data.memberIds.toSet().difference(me())
           && request.resource.data.adminIds.toSet() == resource.data.adminIds.toSet().difference(me())
-          && namesDiff().affectedKeys() == me();
+          && namesDiff().affectedKeys() == me()
+          && emailsDiff().affectedKeys() == me();
       }
 
       // Convidado recusa o próprio convite.
@@ -169,15 +282,16 @@ service cloud.firestore {
           && invitesWithoutMe();
       }
 
-      // Membro atualiza o próprio nome exibido (ao editar o perfil).
-      function renameSelf() {
-        return isMember(resource.data)
-          && changed().hasOnly(['memberNames'])
-          && namesDiff().affectedKeys() == me()
-          && validMemberName(request.resource.data.memberNames[request.auth.uid]);
+      // Membro atualiza o próprio nome e e-mail (ao editar o perfil).
+      function updateSelf() {
+        return isMemberOf(resource.data)
+          && changed().hasOnly(['memberNames', 'memberEmails'])
+          && me().hasAll(namesDiff().affectedKeys())
+          && me().hasAll(emailsDiff().affectedKeys())
+          && myEntryIsValid();
       }
 
-      allow read: if signedIn() && (isMember(resource.data) || isInvited(resource.data));
+      allow read: if signedIn() && (isMemberOf(resource.data) || isInvited(resource.data));
 
       // Criada junto com teamCodes/{code}, na mesma transação.
       allow create: if signedIn()
@@ -185,143 +299,253 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.memberIds == [request.auth.uid]
         && request.resource.data.adminIds == []
-        && validMemberName(request.resource.data.memberNames[request.auth.uid])
+        && myEntryIsValid()
         && request.resource.data.invitedEmails == []
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time
-        && getAfter(/databases/$(database)/documents/teamCodes/$(request.resource.data.code)).data.teamId == teamId;
+        && getAfter(teamCodePath(request.resource.data.code)).data.teamId == teamId;
 
       allow update: if signedIn()
         && validTeam(request.resource.data)
         && !changed().hasAny(['code', 'createdBy', 'createdAt'])
         && (editInfo() || invite() || manageMembers() || join() || leave()
-          || declineInvite() || renameSelf());
+          || declineInvite() || updateSelf());
 
       // Apagada pelo criador, junto com teamCodes/{code}.
       allow delete: if signedIn() && isCreator(resource.data);
     }
 
-    // Código de convite -> equipe. Pode ser consultado pelo código exato
-    // (entrar por código), mas não listado. Como não há regra de update,
-    // um código já usado nunca é sobrescrito.
+    // Código de convite -> equipe, com nome e descrição para a prévia exibida
+    // antes de entrar (UC06). Pode ser consultado pelo código exato, mas não
+    // listado. teamId nunca muda, então um código já usado não é reaproveitado.
     match /teamCodes/{code} {
+      function matchesTeam(code, team) {
+        return team.code == code
+          && team.createdBy == request.auth.uid
+          && team.name == request.resource.data.name
+          && team.description == request.resource.data.description;
+      }
+
       allow get: if signedIn();
 
       allow create: if signedIn()
-        && request.resource.data.keys().hasOnly(['teamId', 'createdAt'])
-        && request.resource.data.keys().hasAll(['teamId', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['teamId', 'name', 'description', 'createdAt'])
+        && request.resource.data.keys().hasAll(['teamId', 'name', 'description', 'createdAt'])
         && request.resource.data.teamId is string
         && request.resource.data.createdAt == request.time
         && !exists(teamPath(request.resource.data.teamId))
-        && getAfter(teamPath(request.resource.data.teamId)).data.code == code
-        && getAfter(teamPath(request.resource.data.teamId)).data.createdBy == request.auth.uid;
+        && matchesTeam(code, getAfter(teamPath(request.resource.data.teamId)).data);
+
+      allow update: if signedIn()
+        && changed().hasOnly(['name', 'description'])
+        && matchesTeam(code, getAfter(teamPath(resource.data.teamId)).data);
 
       allow delete: if signedIn()
         && get(teamPath(resource.data.teamId)).data.createdBy == request.auth.uid
         && !existsAfter(teamPath(resource.data.teamId));
     }
 
-    // Tarefas da equipe. Administradores criam, editam e apagam; qualquer
-    // membro avança o status (pendente -> em andamento -> finalizada).
+    // Tarefas da equipe. Administradores criam, editam e apagam e escolhem os
+    // responsáveis entre os membros (UC14); os responsáveis e os
+    // administradores avançam a situação (UC15).
     match /teams/{teamId}/tasks/{taskId} {
-      function changed() {
-        return request.resource.data.diff(resource.data).affectedKeys();
-      }
-
       function validTask(task) {
         return task.keys().hasOnly([
-            'title', 'description', 'responsibles', 'dueDate', 'status',
-            'createdBy', 'createdAt', 'updatedAt'
+            'title', 'description', 'responsibleIds', 'responsibleNames', 'dueDate',
+            'status', 'createdBy', 'createdAt', 'updatedAt'
           ])
           && task.keys().hasAll([
-            'title', 'description', 'responsibles', 'dueDate', 'status',
-            'createdBy', 'createdAt', 'updatedAt'
+            'title', 'description', 'responsibleIds', 'responsibleNames', 'dueDate',
+            'status', 'createdBy', 'createdAt', 'updatedAt'
           ])
           && task.title is string && task.title == task.title.trim()
           && task.title.size() > 0 && task.title.size() <= 100
           && task.description is string
           && task.description.size() > 0 && task.description.size() <= 2000
-          && task.responsibles is string && task.responsibles.size() <= 200
+          && task.responsibleIds is list
+          && task.responsibleIds.size() > 0 && task.responsibleIds.size() <= 20
+          && task.responsibleIds.toSet().size() == task.responsibleIds.size()
+          && task.responsibleNames is map
+          && task.responsibleNames.keys().toSet() == task.responsibleIds.toSet()
           && task.dueDate is string && task.dueDate.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
           && task.status in ['pending', 'in_progress', 'finished'];
       }
 
+      // Pendente -> em andamento -> finalizada, sem voltar nem pular etapas.
       function validTransition(from, to) {
-        return from == to
-          || (from == 'pending' && to == 'in_progress')
+        return (from == 'pending' && to == 'in_progress')
           || (from == 'in_progress' && to == 'finished');
       }
 
-      allow read: if isTeamMember(teamId);
+      function canCreate(team) {
+        return isAdminOf(team)
+          && validTask(request.resource.data)
+          && team.memberIds.hasAll(request.resource.data.responsibleIds)
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
 
-      allow create: if isTeamAdmin(teamId)
-        && validTask(request.resource.data)
-        && request.resource.data.status == 'pending'
-        && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
+      function changeStatus(team) {
+        return changed().hasOnly(['status', 'updatedAt'])
+          && validTransition(resource.data.status, request.resource.data.status)
+          && (request.auth.uid in resource.data.responsibleIds || isAdminOf(team));
+      }
 
-      allow update: if isTeamMember(teamId)
-        && validTask(request.resource.data)
-        && request.resource.data.updatedAt == request.time
-        && (
-          (changed().hasOnly(['status', 'updatedAt'])
-            && validTransition(resource.data.status, request.resource.data.status))
-          || (isTeamAdmin(teamId)
-            && resource.data.status != 'finished'
-            && changed().hasOnly(['title', 'description', 'responsibles', 'dueDate', 'updatedAt']))
-        );
+      function editData(team) {
+        return isAdminOf(team)
+          && resource.data.status != 'finished'
+          && changed().hasOnly([
+            'title', 'description', 'responsibleIds', 'responsibleNames', 'dueDate', 'updatedAt'
+          ])
+          && team.memberIds.hasAll(request.resource.data.responsibleIds);
+      }
 
-      allow delete: if isTeamAdmin(teamId);
+      function canUpdate(team) {
+        return isMemberOf(team)
+          && validTask(request.resource.data)
+          && request.resource.data.updatedAt == request.time
+          && (changeStatus(team) || editData(team));
+      }
+
+      allow read: if signedIn() && isMemberOf(get(teamPath(teamId)).data);
+      allow create: if signedIn() && canCreate(get(teamPath(teamId)).data);
+      allow update: if signedIn() && canUpdate(get(teamPath(teamId)).data);
+      allow delete: if signedIn() && isAdminOf(get(teamPath(teamId)).data);
 
       // Comentários. Qualquer membro comenta enquanto a tarefa não termina;
-      // o autor ou um administrador edita e apaga. Cada edição guarda o texto
-      // anterior em history, que só cresce.
+      // o autor ou um administrador edita e apaga. Cada edição guarda a versão
+      // anterior (texto e data) em history, que só cresce.
       match /comments/{commentId} {
-        function taskOpen() {
-          return get(/databases/$(database)/documents/teams/$(teamId)/tasks/$(taskId)).data.status != 'finished';
-        }
-
         function validText(text) {
           return text is string && text.trim().size() > 0 && text.size() <= 1000;
         }
 
-        function canModerate() {
-          return resource.data.authorId == request.auth.uid || isTeamAdmin(teamId);
+        function canModerate(team) {
+          return isMemberOf(team)
+            && (resource.data.authorId == request.auth.uid || isAdminOf(team));
         }
 
-        allow read: if isTeamMember(teamId);
+        function canComment(team, task) {
+          return isMemberOf(team)
+            && task.status != 'finished'
+            && request.resource.data.keys().hasOnly([
+              'text', 'history', 'authorId', 'authorName', 'createdAt', 'updatedAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'text', 'history', 'authorId', 'authorName', 'createdAt', 'updatedAt'
+            ])
+            && validText(request.resource.data.text)
+            && request.resource.data.history == []
+            && request.resource.data.authorId == request.auth.uid
+            && validName(request.resource.data.authorName)
+            && request.resource.data.createdAt == request.time
+            && request.resource.data.updatedAt == request.time;
+        }
 
-        allow create: if isTeamMember(teamId)
-          && taskOpen()
-          && request.resource.data.keys().hasOnly([
-            'text', 'history', 'authorId', 'authorName', 'createdAt', 'updatedAt'
-          ])
-          && request.resource.data.keys().hasAll([
-            'text', 'history', 'authorId', 'authorName', 'createdAt', 'updatedAt'
-          ])
-          && validText(request.resource.data.text)
-          && request.resource.data.history == []
-          && request.resource.data.authorId == request.auth.uid
-          && request.resource.data.authorName is string
-          && request.resource.data.authorName.size() > 0
-          && request.resource.data.authorName.size() <= 100
-          && request.resource.data.createdAt == request.time
-          && request.resource.data.updatedAt == request.time;
+        function canEditComment(team, task) {
+          return canModerate(team)
+            && task.status != 'finished'
+            && changed().hasOnly(['text', 'history', 'updatedAt'])
+            && validText(request.resource.data.text)
+            && request.resource.data.text != resource.data.text
+            && request.resource.data.history == resource.data.history.concat([
+              { 'text': resource.data.text, 'editedAt': resource.data.updatedAt }
+            ])
+            && request.resource.data.history.size() <= 50
+            && request.resource.data.updatedAt == request.time;
+        }
 
-        allow update: if isTeamMember(teamId)
-          && taskOpen()
-          && canModerate()
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['text', 'history', 'updatedAt'])
-          && validText(request.resource.data.text)
-          && request.resource.data.text != resource.data.text
-          && request.resource.data.history == resource.data.history.concat([resource.data.text])
-          && request.resource.data.history.size() <= 50
-          && request.resource.data.updatedAt == request.time;
-
-        allow delete: if isTeamMember(teamId) && canModerate();
+        allow read: if signedIn() && isMemberOf(get(teamPath(teamId)).data);
+        allow create: if signedIn()
+          && canComment(get(teamPath(teamId)).data, get(taskPath(teamId, taskId)).data);
+        allow update: if signedIn()
+          && canEditComment(get(teamPath(teamId)).data, get(taskPath(teamId, taskId)).data);
+        allow delete: if signedIn() && canModerate(get(teamPath(teamId)).data);
       }
+    }
+
+    // Histórico de tarefas e comentários (RF25): tipo do evento, campo
+    // alterado, valores anterior e novo, autor e data. Cada registro é gravado
+    // no mesmo lote da alteração, e as regras conferem que a alteração
+    // descrita realmente acontece nele. Ninguém edita registros; o criador só
+    // os apaga junto com a equipe.
+    match /teams/{teamId}/history/{eventId} {
+      function validEvent(e) {
+        return e.keys().hasOnly([
+            'type', 'taskId', 'taskTitle', 'commentId', 'field', 'oldValue', 'newValue',
+            'userId', 'userName', 'createdAt'
+          ])
+          && e.keys().hasAll([
+            'type', 'taskId', 'taskTitle', 'commentId', 'field', 'oldValue', 'newValue',
+            'userId', 'userName', 'createdAt'
+          ])
+          && e.taskId is string && e.taskId.size() > 0
+          && e.taskTitle is string && e.taskTitle.size() <= 100
+          && e.commentId is string
+          && e.field is string
+          && e.oldValue is string && e.oldValue.size() <= 2000
+          && e.newValue is string && e.newValue.size() <= 2000
+          && e.userId == request.auth.uid
+          && validName(e.userName)
+          && e.createdAt == request.time;
+      }
+
+      function taskEvent(e) {
+        let path = taskPath(teamId, e.taskId);
+        return e.commentId == ''
+          && (
+            (e.type == 'task_created' && e.field == ''
+              && !exists(path) && getAfter(path).data.title == e.taskTitle)
+            || (e.type == 'task_updated' && taskFieldChanged(e, get(path).data, getAfter(path).data))
+            || (e.type == 'task_status' && statusChanged(e, get(path).data, getAfter(path).data))
+            || (e.type == 'task_deleted' && e.field == ''
+              && exists(path) && !existsAfter(path))
+          );
+      }
+
+      function statusChanged(e, before, after) {
+        return e.field == 'status'
+          && before.status == e.oldValue
+          && after.status == e.newValue
+          && after.updatedAt == request.time;
+      }
+
+      function taskFieldChanged(e, before, after) {
+        return after.updatedAt == request.time
+          && (
+            (e.field in ['title', 'description', 'dueDate']
+              && before[e.field] == e.oldValue && after[e.field] == e.newValue
+              && e.oldValue != e.newValue)
+            || (e.field == 'responsibles'
+              && before.responsibleIds.toSet() != after.responsibleIds.toSet())
+          );
+      }
+
+      function commentEvent(e) {
+        let path = commentPath(teamId, e.taskId, e.commentId);
+        return e.commentId.size() > 0
+          && (
+            (e.type == 'comment_created' && e.field == ''
+              && !exists(path) && getAfter(path).data.text == e.newValue)
+            || (e.type == 'comment_updated' && e.field == 'text'
+              && get(path).data.text == e.oldValue
+              && getAfter(path).data.text == e.newValue)
+            || (e.type == 'comment_deleted' && e.field == ''
+              && get(path).data.text == e.oldValue && !existsAfter(path))
+          );
+      }
+
+      allow read: if signedIn() && isMemberOf(get(teamPath(teamId)).data);
+
+      allow create: if signedIn()
+        && isMemberOf(get(teamPath(teamId)).data)
+        && validEvent(request.resource.data)
+        && (taskEvent(request.resource.data) || commentEvent(request.resource.data));
+
+      allow delete: if signedIn()
+        && get(teamPath(teamId)).data.createdBy == request.auth.uid;
     }
   }
 }

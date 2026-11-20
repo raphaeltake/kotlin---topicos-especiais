@@ -82,6 +82,11 @@ class InviteTeamActivity : AppCompatActivity() {
                     getString(R.string.invite_email_invalid_error)
                 invitedEmails.any { it.equals(email, ignoreCase = true) } ->
                     getString(R.string.invite_email_duplicate_error)
+                // UC08 A2: quem já participa não precisa de convite.
+                currentTeam.members.any { it.email.equals(email, ignoreCase = true) } ->
+                    getString(R.string.invite_already_member)
+                currentTeam.invitedEmails.any { it.equals(email, ignoreCase = true) } ->
+                    getString(R.string.invite_already_pending)
                 else -> null
             }
 

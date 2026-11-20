@@ -167,7 +167,7 @@ object FirebaseAccountRepository {
                 Workspace.profile.name = name
                 Workspace.profile.email = email
                 Workspace.profile.password = ""
-                FirebaseTeamRepository.syncMemberName(name)
+                FirebaseTeamRepository.syncMemberProfile(name)
                 onComplete(null)
             } else {
                 onComplete(
