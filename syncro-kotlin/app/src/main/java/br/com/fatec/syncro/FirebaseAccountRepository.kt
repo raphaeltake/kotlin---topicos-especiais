@@ -1,9 +1,13 @@
 package br.com.fatec.syncro
 
 import android.content.Context
+import android.util.Log
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.tasks.RuntimeExecutionException
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -123,48 +127,58 @@ object FirebaseAccountRepository {
         }
     }
 
+    /** A senha atual informada para confirmar a identidade está errada. */
+    class WrongPasswordException : Exception("Senha atual incorreta.")
+
+    /** Trocar e-mail ou senha exige confirmar a senha atual (veja [updateAccount]). */
+    fun needsCurrentPassword(email: String, newPassword: String): Boolean =
+        newPassword.isNotEmpty() || !auth.currentUser?.email.equals(email, ignoreCase = true)
+
+    /**
+     * Atualiza nome, e-mail e senha do perfil. O Firebase só troca e-mail ou senha
+     * de quem entrou há pouco tempo, então a identidade é confirmada antes com a
+     * senha atual. O novo e-mail só passa a valer depois que o usuário abre o link
+     * enviado para ele (verifyBeforeUpdateEmail); até lá a conta e o perfil mantêm
+     * o e-mail atual. [onComplete] recebe true quando esse link foi enviado.
+     */
     fun updateAccount(
         name: String,
         email: String,
         newPassword: String,
-        onComplete: (Throwable?) -> Unit
+        currentPassword: String,
+        onComplete: (Result<Boolean>) -> Unit
     ) {
         val user = auth.currentUser
-        if (user == null) {
-            onComplete(FirebaseAuthInvalidUserException("NO_CURRENT_USER", "Usuário não autenticado."))
+        val currentEmail = user?.email
+        if (user == null || currentEmail == null) {
+            onComplete(Result.failure(FirebaseAuthInvalidUserException("NO_CURRENT_USER", "Usuário não autenticado.")))
             return
         }
+        val changeEmail = !currentEmail.equals(email, ignoreCase = true)
+        val changePassword = newPassword.isNotEmpty()
 
-        val profile = UserProfileChangeRequest.Builder().setDisplayName(name).build()
-        var updateTask = user.updateProfile(profile)
-
-        if (!user.email.equals(email, ignoreCase = true)) {
-            @Suppress("DEPRECATION")
-            updateTask = updateTask.continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    throw task.exception ?: IllegalStateException("Falha ao atualizar o nome.")
+        var chain: Task<Void> = Tasks.forResult(null)
+        if (changeEmail || changePassword) {
+            chain = user.reauthenticate(EmailAuthProvider.getCredential(currentEmail, currentPassword))
+                .continueWithTask { task ->
+                    when (val error = task.exception?.let(::unwrapTaskError)) {
+                        null -> task
+                        is FirebaseAuthInvalidCredentialsException -> throw WrongPasswordException()
+                        is Exception -> throw error
+                        else -> throw IllegalStateException(error)
+                    }
                 }
-                user.updateEmail(email)
-            }
         }
-
-        if (newPassword.isNotEmpty()) {
-            updateTask = updateTask.continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    throw task.exception ?: IllegalStateException("Falha ao atualizar o perfil.")
-                }
-                user.updatePassword(newPassword)
-            }
-        }
-
-        updateTask.continueWithTask { task ->
-            if (!task.isSuccessful) {
-                throw task.exception ?: IllegalStateException("Falha ao atualizar a conta.")
-            }
+        if (changePassword) chain = chain.onSuccessTask { user.updatePassword(newPassword) }
+        if (changeEmail) chain = chain.onSuccessTask { user.verifyBeforeUpdateEmail(email) }
+        chain.onSuccessTask {
+            user.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(name).build())
+        }.onSuccessTask {
             firestore.collection(USERS_COLLECTION).document(user.uid).set(
                 mapOf(
                     "name" to name,
-                    "email" to email,
+                    // Acompanha o e-mail da conta, que só muda após a confirmação.
+                    "email" to currentEmail,
                     "updatedAt" to FieldValue.serverTimestamp()
                 ),
                 SetOptions.merge()
@@ -173,15 +187,13 @@ object FirebaseAccountRepository {
             if (task.isSuccessful) {
                 syncLocalProfile(user)
                 Workspace.profile.name = name
-                Workspace.profile.email = email
-                Workspace.profile.password = ""
                 FirebaseTeamRepository.syncMemberProfile(name)
-                onComplete(null)
+                onComplete(Result.success(changeEmail))
             } else {
-                onComplete(
-                    task.exception?.let(::unwrapTaskError)
-                        ?: IllegalStateException("Falha ao atualizar a conta.")
-                )
+                val error = task.exception?.let(::unwrapTaskError)
+                    ?: IllegalStateException("Falha ao atualizar a conta.")
+                Log.w(TAG, "Falha ao atualizar a conta", error)
+                onComplete(Result.failure(error))
             }
         }
     }
@@ -210,9 +222,8 @@ object FirebaseAccountRepository {
                 document.getString("name")?.takeIf { it.isNotBlank() }?.let {
                     Workspace.profile.name = it
                 }
-                document.getString("email")?.takeIf { it.isNotBlank() }?.let {
-                    Workspace.profile.email = it
-                }
+                // O e-mail vem sempre da conta: o do documento pode estar
+                // desatualizado logo depois de uma troca confirmada pelo link.
             }
     }
 
@@ -220,6 +231,7 @@ object FirebaseAccountRepository {
         val cause = unwrapTaskError(error)
         return context.getString(
         when (cause) {
+            is WrongPasswordException -> R.string.auth_wrong_current_password
             is FirebaseAuthUserCollisionException -> R.string.auth_email_already_in_use
             is FirebaseAuthWeakPasswordException -> R.string.auth_weak_password
             is FirebaseAuthInvalidUserException,
@@ -247,4 +259,5 @@ object FirebaseAccountRepository {
     }
 
     private const val USERS_COLLECTION = "users"
+    private const val TAG = "FirebaseAccount"
 }

@@ -427,8 +427,8 @@ service cloud.firestore {
       allow delete: if signedIn() && isAdminOf(get(teamPath(teamId)).data);
 
       // Comentários. Qualquer membro comenta enquanto a tarefa não termina;
-      // o autor ou um administrador edita e apaga. Cada edição guarda a versão
-      // anterior (texto e data) em history, que só cresce.
+      // só o autor edita, e o autor ou um administrador apaga. Cada edição guarda
+      // a versão anterior (texto e data) em history, que só cresce.
       match /comments/{commentId} {
         function validText(text) {
           return text is string && text.trim().size() > 0 && text.size() <= 1000;
@@ -457,7 +457,8 @@ service cloud.firestore {
         }
 
         function canEditComment(team, task) {
-          return canModerate(team)
+          return isMemberOf(team)
+            && resource.data.authorId == request.auth.uid
             && task.status != 'finished'
             && changed().hasOnly(['text', 'history', 'updatedAt'])
             && validText(request.resource.data.text)

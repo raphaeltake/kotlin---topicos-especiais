@@ -79,8 +79,25 @@ object FirebaseTeamRepository {
             Workspace.teams.clear()
             Workspace.teams.addAll(loaded)
             Workspace.teamsLoaded = true
+            syncMemberEmail(uid)
             onChange()
         }
+
+    /**
+     * Um novo e-mail só vale depois de confirmado pelo link (veja
+     * [FirebaseAccountRepository.updateAccount]). Na primeira carga das equipes
+     * com o e-mail já trocado, corrige o registro do usuário em cada uma delas.
+     */
+    private fun syncMemberEmail(uid: String) {
+        val user = auth.currentUser?.takeIf { it.uid == uid } ?: return
+        val email = userEmail(user).ifEmpty { return }
+        Workspace.teams.forEach { team ->
+            val member = team.members.firstOrNull { it.uid == uid } ?: return@forEach
+            if (member.email != email) {
+                teams.document(team.id).update(FieldPath.of("memberEmails", uid), email)
+            }
+        }
+    }
 
     /**
      * Escuta os convites pendentes para o e-mail do usuário e registra o aviso

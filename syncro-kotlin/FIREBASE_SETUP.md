@@ -74,7 +74,8 @@ As operações ficam em `FirebaseTeamRepository` (equipes),
 | Criar, editar e apagar tarefas e escolher os responsáveis | Criador e administradores (responsáveis precisam ser membros; editar só enquanto não finalizada) |
 | Iniciar e finalizar tarefas | Responsáveis pela tarefa e administradores, só para a frente (pendente → em andamento → finalizada) |
 | Comentar | Qualquer membro, enquanto a tarefa não for finalizada |
-| Editar e apagar comentário | O autor ou um administrador (cada edição guarda a versão anterior em `history`) |
+| Editar comentário | Só o autor (cada edição guarda a versão anterior em `history`) |
+| Apagar comentário | O autor ou um administrador |
 | Ler, marcar como lida e apagar notificações | Só o dono |
 | Enviar notificação de tarefa | Membro da equipe, para os responsáveis (e, em mudança de situação e comentário, para quem criou a tarefa) |
 | Registrar e apagar o token FCM do aparelho | Só o dono (ninguém lê pelo app; o servidor de push lê com acesso de administrador) |

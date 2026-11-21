@@ -193,11 +193,12 @@ await check('autor edita de novo (histórico cresce)', true, () => editComment(d
 await check('histórico adulterado é recusado', false, () => editComment(dave, 'dave', t1, c1, 'X', { history: [] }));
 await check('texto igual não conta como edição', false, () => editComment(dave, 'dave', t1, c1, 'Editado 2'));
 await check('membro não edita comentário de outro', false, () => editComment(dave, 'dave', t1, c2, 'Hack'));
-await check('admin edita comentário de outro', true, () => editComment(carol, 'carol', t1, c1, 'Moderado'));
+await check('admin não edita comentário de outro', false, () => editComment(carol, 'carol', t1, c1, 'Moderado'));
+await check('admin edita o próprio comentário', true, () => editComment(carol, 'carol', t1, c2, 'Editado pela admin'));
 await check('versões anteriores guardadas em ordem, com data', true, () => env.withSecurityRulesDisabled(async (c) => {
   const versions = (await getDoc(comment(c.firestore(), t1, c1))).get('history');
   const texts = versions.map((v) => v.text);
-  if (JSON.stringify(texts) !== JSON.stringify(['Comentário', 'Editado', 'Editado 2'])) throw new Error(JSON.stringify(texts));
+  if (JSON.stringify(texts) !== JSON.stringify(['Comentário', 'Editado'])) throw new Error(JSON.stringify(texts));
   if (!versions.every((v) => v.editedAt?.toDate)) throw new Error('versão sem data');
 }));
 await check('membro não apaga comentário de outro', false, () => removeComment(dave, 'dave', t1, c2));
@@ -225,7 +226,7 @@ await check('responsável finaliza', true, () => setStatus(dave, 'dave', t1, 'in
 await check('não reabre tarefa finalizada', false, () => setStatus(dave, 'dave', t1, 'finished', 'in_progress'));
 await check('admin não edita tarefa finalizada', false, () => editTask(carol, 'carol', t1, { title: 'Depois' }, [{ field: 'title', old: 'Planejar sprint', new: 'Depois' }]));
 await check('não comenta em tarefa finalizada', false, () => addComment(dave, 'dave', t1));
-await check('não edita comentário de tarefa finalizada', false, () => editComment(carol, 'carol', t1, c1, 'Tarde'));
+await check('autor não edita comentário de tarefa finalizada', false, () => editComment(dave, 'dave', t1, c1, 'Tarde'));
 
 // --- Apagar tarefa ---
 await check('membro comum não apaga tarefa', false, () => deleteTask(dave, 'dave', t2, 'Novo título'));

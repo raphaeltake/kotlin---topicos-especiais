@@ -39,6 +39,7 @@
     <string name="auth_too_many_requests">Muitas tentativas. Aguarde um pouco e tente novamente.</string>
     <string name="auth_recent_login_required">Por segurança, saia e entre novamente antes de alterar a senha.</string>
     <string name="firestore_permission_denied">Não foi possível salvar o perfil. Verifique as permissões do banco de dados.</string>
+    <string name="auth_wrong_current_password">Senha atual incorreta.</string>
     <string name="auth_unknown_error">Não foi possível concluir. Tente novamente.</string>
     <string name="profile">Perfil</string>
     <string name="save_changes">Salvar alterações</string>
@@ -119,4 +120,9 @@
     <string name="profile_password_help">Para alterar a senha, preencha os dois campos abaixo.</string>
     <string name="profile_new_password_hint">Nova senha (opcional)</string>
     <string name="profile_confirm_password_hint">Confirmar nova senha</string>
+    <string name="profile_confirm_identity_title">Confirme sua senha</string>
+    <string name="profile_confirm_identity_subtitle">Para alterar o e-mail ou a senha, informe sua senha atual.</string>
+    <string name="profile_current_password_hint">Senha atual</string>
+    <string name="profile_confirm_identity_button">Confirmar</string>
+    <string name="profile_email_verification_sent">Enviamos um link de confirmação para %1$s. O e-mail muda quando você abrir o link; depois, entre de novo com o novo e-mail.</string>
 </resources>

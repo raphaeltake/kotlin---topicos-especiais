@@ -378,8 +378,10 @@ open class WorkspaceActivity : AppCompatActivity() {
         text(R.id.tvTasksTabCount, current.tasks.count { it.status != Workspace.Status.FINISHED }.toString())
         text(R.id.tvMembersTabCount, current.members.size.toString())
         updateTeamCounters()
-        // Só quem criou a equipe edita nome e descrição (UC04).
-        findViewById<View>(R.id.btnEditTeam)?.visibility = if (current.isCreator) View.VISIBLE else View.GONE
+        // Só quem criou a equipe edita nome e descrição (UC04). INVISIBLE (e não GONE)
+        // porque o selo de membros é centralizado no botão: com GONE ele vira um ponto
+        // no topo do card e o selo sobe, ficando cortado.
+        findViewById<View>(R.id.btnEditTeam)?.visibility = if (current.isCreator) View.VISIBLE else View.INVISIBLE
         if (current.isCreator) click(R.id.btnEditTeam) { editTeam() }
         click(R.id.membersTab) {
             current.hasNewMembers = false
@@ -783,12 +785,18 @@ open class WorkspaceActivity : AppCompatActivity() {
             DueDates.formatDateTime(comment.createdAt).takeIf { it.isNotEmpty() }?.let { date ->
                 row.findViewById<TextView>(R.id.tvCommentAuthor).append(getString(R.string.comment_date_suffix, date))
             }
-            val edit = row.findViewById<View>(R.id.btnEditComment1)
-            // Só o autor ou um administrador edita ou apaga o comentário.
-            val canModerate = team!!.admin || comment.authorId == Workspace.profile.uid
-            edit.visibility = if (finished || !canModerate) View.GONE else View.VISIBLE
+            val edit = row.findViewById<ImageView>(R.id.btnEditComment1)
+            // UC16: só o autor edita o comentário; o autor ou um administrador o remove.
+            val isAuthor = comment.authorId == Workspace.profile.uid
+            edit.visibility = if (finished || !(isAuthor || team!!.admin)) View.GONE else View.VISIBLE
+            if (!isAuthor) {
+                // Comentário de outra pessoa: o administrador só tem a opção de remover.
+                edit.setImageResource(R.drawable.ic_delete)
+                edit.contentDescription = getString(R.string.screen_delete_comment)
+            }
             edit.setOnClickListener {
-                if (team!!.admin) {
+                if (!isAuthor) removeComment(comment)
+                else if (team!!.admin) {
                     PopupMenu(this, edit).apply {
                         menu.add(getString(R.string.screen_edit_comment)).setOnMenuItemClickListener { editComment(comment); true }
                         menu.add(getString(R.string.screen_delete_comment)).setOnMenuItemClickListener { removeComment(comment); true }
@@ -1018,22 +1026,53 @@ open class WorkspaceActivity : AppCompatActivity() {
             if (listOf(name, email, password, confirm).any { it.error != null }) return@click
 
             val saveButton = findViewById<Button>(R.id.btnSaveProfile)
-            saveButton.isEnabled = false
-            saveButton.text = getString(R.string.saving_profile)
-            FirebaseAccountRepository.updateAccount(newName, newEmail, newPassword) { error ->
-                saveButton.isEnabled = true
-                saveButton.text = getString(R.string.save_changes)
-                if (error == null) {
-                    message(getString(R.string.profile_updated))
-                    finish()
-                } else {
-                    val errorMessage = FirebaseAccountRepository.errorMessage(this, error)
-                    when (error) {
-                        is com.google.firebase.auth.FirebaseAuthUserCollisionException ->
-                            email.error = errorMessage
-                        is com.google.firebase.auth.FirebaseAuthWeakPasswordException ->
-                            password.error = errorMessage
-                        else -> password.error = errorMessage
+            // Erros de e-mail e de senha vão para o campo correspondente; os demais, em aviso.
+            fun showError(error: Throwable) {
+                val errorMessage = FirebaseAccountRepository.errorMessage(this, error)
+                when (error) {
+                    is com.google.firebase.auth.FirebaseAuthUserCollisionException -> email.error = errorMessage
+                    is com.google.firebase.auth.FirebaseAuthWeakPasswordException -> password.error = errorMessage
+                    else -> message(errorMessage)
+                }
+            }
+            fun save(currentPassword: String, onDone: (Throwable?) -> Unit) {
+                saveButton.isEnabled = false
+                saveButton.text = getString(R.string.saving_profile)
+                FirebaseAccountRepository.updateAccount(newName, newEmail, newPassword, currentPassword) { result ->
+                    saveButton.isEnabled = true
+                    saveButton.text = getString(R.string.save_changes)
+                    onDone(result.exceptionOrNull())
+                    result.onSuccess { emailPending ->
+                        if (emailPending) {
+                            Toast.makeText(this, getString(R.string.profile_email_verification_sent, newEmail), Toast.LENGTH_LONG).show()
+                        } else message(getString(R.string.profile_updated))
+                        finish()
+                    }
+                }
+            }
+            if (!FirebaseAccountRepository.needsCurrentPassword(newEmail, newPassword)) {
+                save("") { error -> error?.let(::showError) }
+                return@click
+            }
+            // O Firebase só troca e-mail ou senha depois de confirmar a senha atual.
+            dialog(R.layout.dialog_confirm_password) { view, dialog ->
+                val current = view.findViewById<EditText>(R.id.etCurrentPassword).apply { clearErrorOnChange() }
+                val confirmButton = view.findViewById<View>(R.id.btnConfirmPassword)
+                confirmButton.setOnClickListener {
+                    val currentPassword = current.text.toString()
+                    if (currentPassword.isEmpty()) {
+                        current.showError(getString(R.string.password_required_error))
+                        return@setOnClickListener
+                    }
+                    confirmButton.isEnabled = false
+                    save(currentPassword) { error ->
+                        confirmButton.isEnabled = true
+                        when (error) {
+                            null -> dialog.dismiss()
+                            is FirebaseAccountRepository.WrongPasswordException ->
+                                current.showError(FirebaseAccountRepository.errorMessage(this, error))
+                            else -> { dialog.dismiss(); showError(error) }
+                        }
                     }
                 }
             }
