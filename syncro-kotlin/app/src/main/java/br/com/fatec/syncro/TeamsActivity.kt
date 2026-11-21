@@ -96,7 +96,13 @@ class TeamsActivity : AppCompatActivity() {
             row.findViewById<TextView>(R.id.tvTeamName).text = team.name
             row.findViewById<TextView>(R.id.tvTeamInitial).text = Navigation.initials(team.name)
             row.findViewById<TextView>(R.id.tvTeamRole).apply {
-                text = getString(if (team.admin) R.string.role_admin_short else R.string.role_member_short)
+                text = getString(
+                    when {
+                        team.isCreator -> R.string.role_creator_short
+                        team.admin -> R.string.role_admin_short
+                        else -> R.string.role_member_short
+                    }
+                )
                 setBackgroundResource(if (team.admin) R.drawable.bg_chip_blue else R.drawable.bg_chip)
                 setTextColor(ContextCompat.getColor(context, if (team.admin) R.color.blue_dark else R.color.gray))
             }

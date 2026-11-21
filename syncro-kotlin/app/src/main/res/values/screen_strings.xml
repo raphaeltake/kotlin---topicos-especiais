@@ -252,6 +252,7 @@
     <string name="home_subtitle">Acompanhe suas equipes e tarefas.</string>
     <string name="home_create_team_hint">Comece um novo projeto</string>
     <string name="home_join_team_hint">Use um código de convite</string>
+    <string name="role_creator_short">Criador</string>
     <string name="role_admin_short">Admin</string>
     <string name="role_member_short">Membro</string>
     <string name="screen_team_details">Equipe</string>
