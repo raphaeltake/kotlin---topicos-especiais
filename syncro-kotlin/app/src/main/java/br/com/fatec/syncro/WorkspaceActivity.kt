@@ -269,9 +269,11 @@ open class WorkspaceActivity : AppCompatActivity() {
         items.filter { !it.seen }.forEach { newNotifications.add(it.id) }
         if (Workspace.notificationsLoaded) Workspace.hasUnreadNotifications = false
         Navigation.toolbar(this, team?.id)
-        // A lista substitui os cartões de exemplo do layout.
+        // A lista substitui os cartões de exemplo do layout; só o subtítulo da tela é mantido.
         val list = notificationList() ?: return
+        val subtitle = findViewById<View>(R.id.tvNotificationsSubtitle)
         list.removeAllViews()
+        subtitle?.let { list.addView(it) }
         items.forEach { list.addView(notificationRow(list, it)) }
         if (items.isEmpty() && Workspace.notificationsLoaded) {
             list.addView(emptyState(this, getString(R.string.notifications_empty)))
@@ -292,14 +294,25 @@ open class WorkspaceActivity : AppCompatActivity() {
         row.findViewById<TextView>(R.id.tvNotificationDate).text = DueDates.formatDateTime(notification.createdAt)
         row.findViewById<View>(R.id.tvNotificationUnread).visibility =
             if (notification.id in newNotifications) View.VISIBLE else View.GONE
-        row.findViewById<ImageView>(R.id.ivNotificationIcon).setImageResource(
-            when (notification.type) {
-                FirebaseNotificationRepository.TYPE_TASK_ASSIGNED -> R.drawable.ic_team_tasks
-                FirebaseNotificationRepository.TYPE_TASK_STATUS -> R.drawable.ic_check_circle
-                FirebaseNotificationRepository.TYPE_TASK_COMMENT -> R.drawable.ic_edit
-                else -> R.drawable.ic_person_add
-            }
-        )
+        // Ícone e cor do quadro conforme o tipo, no mesmo padrão dos demais cartões.
+        val (icon, tile, tint) = when (notification.type) {
+            FirebaseNotificationRepository.TYPE_TASK_ASSIGNED ->
+                Triple(R.drawable.ic_team_tasks, R.drawable.bg_icon_tile_blue, R.color.blue)
+            FirebaseNotificationRepository.TYPE_TASK_STATUS ->
+                Triple(R.drawable.ic_check_circle, R.drawable.bg_icon_tile_green, R.color.status_green_text)
+            FirebaseNotificationRepository.TYPE_TASK_COMMENT ->
+                Triple(R.drawable.ic_comment, R.drawable.bg_icon_tile_blue, R.color.blue)
+            FirebaseNotificationRepository.TYPE_INVITE_ACCEPTED ->
+                Triple(R.drawable.ic_person_add, R.drawable.bg_icon_tile_green, R.color.status_green_text)
+            FirebaseNotificationRepository.TYPE_INVITE_DECLINED ->
+                Triple(R.drawable.ic_person_remove, R.drawable.bg_icon_tile_red, R.color.status_red_text)
+            else -> Triple(R.drawable.ic_group_add, R.drawable.bg_icon_tile_blue, R.color.blue)
+        }
+        row.findViewById<ImageView>(R.id.ivNotificationIcon).apply {
+            setImageResource(icon)
+            setBackgroundResource(tile)
+            imageTintList = ContextCompat.getColorStateList(this@WorkspaceActivity, tint)
+        }
         val state = row.findViewById<TextView>(R.id.tvNotificationState)
         fun showState(text: Int) {
             state.text = getString(text)
@@ -517,16 +530,15 @@ open class WorkspaceActivity : AppCompatActivity() {
         val list = anchor.parent as ViewGroup
         if (item != null) {
             text(R.id.tvTasksTitle, getString(R.string.history_task_title))
+            // O aviso de "tarefas finalizadas" só faz sentido no histórico da equipe.
+            findViewById<View>(R.id.historySubtitleCard)?.visibility = View.GONE
             (0 until list.childCount).map { list.getChildAt(it) }
                 .filter { it.tag == "task_item" }
                 .forEach { list.removeView(it) }
         }
-        list.addView(TextView(this).apply {
+        list.addView(TextView(this, null, 0, R.style.Screen_Overline).apply {
             text = getString(R.string.history_changes_section)
-            setTextColor(color(R.color.black))
-            textSize = 18f
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(0, if (item == null) dp(24) else 0, 0, dp(12))
+            setPadding(0, if (item == null) dp(24) else dp(4), 0, dp(2))
         })
         val entries = item?.history ?: current.history
         val loaded = item?.historyLoaded ?: current.historyLoaded
@@ -549,6 +561,7 @@ open class WorkspaceActivity : AppCompatActivity() {
         row.findViewById<TextView>(R.id.tvHistoryDate).text = DueDates.formatDateTime(entry.createdAt)
         // Registros de tarefas que ainda existem abrem os detalhes delas.
         if (showTask && team?.tasks?.any { it.id == entry.taskId } == true) {
+            row.setBackgroundResource(R.drawable.bg_card_pressable)
             row.setOnClickListener { go("task", entry.taskId) }
         }
         return row

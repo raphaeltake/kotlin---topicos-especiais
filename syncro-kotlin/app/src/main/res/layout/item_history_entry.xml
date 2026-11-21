@@ -5,32 +5,40 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginTop="10dp"
     android:background="@drawable/bg_card"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
         android:id="@+id/tvHistoryTask"
-        style="@style/Screen.Label"
+        style="@style/Screen.Overline"
+        android:layout_marginBottom="6dp"
+        android:textColor="@color/blue"
+        android:textSize="11sp"
         tools:text="@string/screen_task_title" />
 
     <TextView
         android:id="@+id/tvHistoryAction"
-        style="@style/Screen.Body"
-        android:textColor="@color/black"
+        style="@style/Screen.Label"
+        android:textSize="15sp"
         tools:text="@string/history_task_created" />
 
     <TextView
         android:id="@+id/tvHistoryDetail"
         style="@style/Screen.Body"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_card_soft"
+        android:padding="12dp"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
         android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvHistoryDate"
         style="@style/Screen.Body"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/text_muted"
         android:textSize="12sp"
         tools:text="@string/screen_sample_date" />
 </LinearLayout>

@@ -37,6 +37,7 @@
             android:paddingBottom="24dp">
 
             <TextView
+                android:id="@+id/tvNotificationsSubtitle"
                 style="@style/Screen.Body"
                 android:text="@string/screen_notifications_subtitle" />
 
