@@ -7,6 +7,8 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import android.graphics.Color
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,7 +19,8 @@ import br.com.fatec.syncro.ui.SyncroTextInput
 class PasswordActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // Ícones claros na barra de status, sobre o cabeçalho azul.
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
         setContentView(R.layout.passwordlogin)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.passwordRoot)) { view, insets ->

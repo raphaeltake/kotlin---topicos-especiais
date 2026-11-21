@@ -1,76 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Referência: 23 - Editar comentário.png. Paleta e componentes dos layouts existentes. -->
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Formulário: editar comentário -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/bg_light"
-    android:fillViewport="false"
     android:clipToPadding="false"
+    android:fillViewport="false"
     android:overScrollMode="ifContentScrolls">
+
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        style="@style/Screen.Dialog.Content">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="6dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
-            <TextView
-                android:id="@+id/tvTitle"
-                style="@style/Screen.Title"
-                android:text="@string/screen_edit_comment"
+            android:orientation="horizontal">
+
+            <ImageView
+                style="@style/Screen.IconTile"
+                android:src="@drawable/ic_edit" />
+
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_weight="1" />
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    style="@style/Screen.Dialog.Title"
+                    android:text="@string/screen_edit_comment" />
+
+                <TextView
+                    style="@style/Screen.Body"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/screen_new_comment_subtitle"
+                    android:textSize="13sp" />
+            </LinearLayout>
 
             <ImageButton
                 android:id="@+id/btnDeleteComment"
-                style="@style/Screen.Icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_icon_button_danger"
+                android:contentDescription="@string/screen_delete_comment"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
                 android:src="@drawable/ic_delete"
-                android:contentDescription="@string/screen_delete_comment" />
+                app:tint="@color/status_red_text" />
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Syncro.TextInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            style="@style/Screen.Field"
             android:hint="@string/screen_comment_label">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etComment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="144dp"
-                android:gravity="top|start"
-                android:inputType="textCapSentences|textMultiLine"
-                android:imeOptions="flagNoEnterAction"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:minLines="5"
-                tools:text="@string/screen_sample_comment_label"
-                android:importantForAutofill="no" />
+                style="@style/Screen.Field.Edit.Multiline"
+                tools:text="@string/screen_sample_comment_label" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="24dp">
+        <LinearLayout style="@style/Screen.Dialog.Buttons">
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
-                style="@style/Screen.Button.Outline"
+                style="@style/Screen.Dialog.Button.Cancel"
                 android:text="@string/screen_cancel" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveComment"
-                style="@style/Screen.Button.Primary"
-                android:text="@string/screen_action_btnsavecomment"
-                android:layout_marginTop="8dp" />
+                style="@style/Screen.Dialog.Button.Confirm"
+                android:text="@string/screen_action_btnsavecomment" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

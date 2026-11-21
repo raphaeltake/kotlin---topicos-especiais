@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="12dp"
+    android:layout_marginTop="10dp"
     android:background="@drawable/bg_card"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="14dp">
 
-    <ImageView
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:contentDescription="Membro"
-        android:padding="7dp"
-        android:src="@drawable/ic_team_member"
-        app:tint="@color/blue" />
+    <TextView
+        android:id="@+id/tvMemberCardAvatar"
+        style="@style/Screen.Avatar"
+        tools:text="AS" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -28,18 +25,21 @@
             android:id="@+id/tvMemberCardName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            tools:text="Ana Souza" />
 
         <TextView
             android:id="@+id/tvMemberCardRole"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:textColor="@color/gray"
-            android:textSize="14sp" />
-
+            android:textSize="13sp"
+            tools:text="Papel: Criador(a)" />
     </LinearLayout>
 
 </LinearLayout>

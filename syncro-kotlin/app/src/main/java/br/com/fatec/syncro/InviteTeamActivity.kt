@@ -170,7 +170,7 @@ class InviteTeamActivity : AppCompatActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
                 setBackgroundResource(R.drawable.bg_email_chip)
-                setPadding(16.dp, 4.dp, 4.dp, 4.dp)
+                setPadding(10.dp, 8.dp, 4.dp, 8.dp)
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -179,19 +179,39 @@ class InviteTeamActivity : AppCompatActivity() {
                 }
             }
 
+            // Inicial do e-mail em um círculo, no mesmo estilo dos avatares de membros.
+            val avatar = TextView(this).apply {
+                text = email.take(1).uppercase()
+                textSize = 14f
+                gravity = android.view.Gravity.CENTER
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                setTextColor(ContextCompat.getColor(context, R.color.blue_dark))
+                setBackgroundResource(R.drawable.bg_avatar)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                layoutParams = LinearLayout.LayoutParams(36.dp, 36.dp)
+            }
+
             val emailText = TextView(this).apply {
                 text = email
                 textSize = 14f
-                setTextColor(ContextCompat.getColor(context, R.color.black))
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginStart = 12.dp
+                }
             }
 
             val removeButton = ImageButton(this).apply {
                 setImageResource(R.drawable.ic_close_circle)
                 imageTintList = ColorStateList.valueOf(
-                    ContextCompat.getColor(context, R.color.blue)
+                    ContextCompat.getColor(context, R.color.text_muted)
                 )
-                setBackgroundResource(android.R.color.transparent)
+                val ripple = android.util.TypedValue()
+                context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, ripple, true)
+                setBackgroundResource(ripple.resourceId)
+                setPadding(10.dp, 10.dp, 10.dp, 10.dp)
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                 contentDescription = getString(R.string.remove_email, email)
                 layoutParams = LinearLayout.LayoutParams(40.dp, 40.dp)
                 setOnClickListener {
@@ -200,6 +220,7 @@ class InviteTeamActivity : AppCompatActivity() {
                 }
             }
 
+            row.addView(avatar)
             row.addView(emailText)
             row.addView(removeButton)
             container.addView(row)

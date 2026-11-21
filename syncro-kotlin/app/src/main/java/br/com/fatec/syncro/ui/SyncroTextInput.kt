@@ -1,7 +1,6 @@
 package br.com.fatec.syncro.ui
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.text.InputType
 import android.util.AttributeSet
@@ -29,13 +28,14 @@ class SyncroTextInput @JvmOverloads constructor(
         )
         isSingleLine = true
         maxLines = 1
-        setTextColor(ContextCompat.getColor(context, R.color.black))
+        textSize = 16f
+        setTextColor(ContextCompat.getColor(context, R.color.text_primary))
         setHintTextColor(ContextCompat.getColor(context, R.color.gray))
     }
 
     init {
         boxBackgroundMode = BOX_BACKGROUND_OUTLINE
-        boxBackgroundColor = Color.TRANSPARENT
+        boxBackgroundColor = ContextCompat.getColor(context, R.color.white)
         setBoxStrokeColorStateList(requireNotNull(
             ContextCompat.getColorStateList(context, R.color.input_stroke)
         ))

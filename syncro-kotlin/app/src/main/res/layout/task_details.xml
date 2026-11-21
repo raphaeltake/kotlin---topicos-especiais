@@ -8,346 +8,311 @@
     android:background="@color/bg_light"
     tools:context=".TaskDetailsActivity">
 
-    <!-- Top Bar -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:id="@+id/topBar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/top_bar_height"
-        android:background="@color/white"
-        android:paddingHorizontal="@dimen/top_bar_horizontal_padding"
+        style="@style/Screen.TopBar"
+        android:layout_width="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Back button in the TOP LEFT -->
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            style="@style/Screen.IconButton"
             android:contentDescription="@string/screen_back"
-            android:padding="@dimen/top_bar_icon_padding"
-            android:src="@drawable/ic_arrow_back"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
+            android:src="@drawable/ic_arrow_back" />
 
-        <!-- Notifications icon in the TOP RIGHT -->
+        <TextView
+            style="@style/Screen.TopBar.Title"
+            android:gravity="center"
+            android:text="@string/screen_task_details" />
+
         <ImageButton
             android:id="@+id/btnNotifications"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            style="@style/Screen.IconButton"
             android:contentDescription="@string/screen_notifications"
-            android:padding="@dimen/top_bar_icon_padding"
-            android:src="@drawable/ic_notifications"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:src="@drawable/ic_notifications" />
+    </LinearLayout>
 
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
+        android:clipToPadding="false"
         android:fillViewport="true"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@+id/footerLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topBar">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="@dimen/screen_padding"
+            android:paddingTop="4dp"
+            android:paddingEnd="@dimen/screen_padding"
+            android:paddingBottom="24dp">
 
-            <!-- Task Header Card -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
-                android:padding="20dp">
+            <!-- Cabeçalho da tarefa -->
+            <LinearLayout
+                style="@style/Screen.Card"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvStatusBadge"
+                        style="@style/Screen.Badge"
+                        tools:text="Pendente" />
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <ImageButton
+                        android:id="@+id/btnEditTask"
+                        style="@style/Screen.IconButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="11dp"
+                        android:contentDescription="@string/screen_edit_task"
+                        android:src="@drawable/ic_edit"
+                        app:tint="@color/blue" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvTaskTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="12dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="Título tarefa"
-                    android:textColor="@color/black"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@id/dateLayout"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvStatusBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    style="@style/Screen.Title"
                     android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_badge"
-                    android:backgroundTint="@color/status_green_bg"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:text="Pendente"
-                    android:textColor="@color/status_green"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle" />
-
-                <ImageButton
-                    android:id="@+id/btnEditTask"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/screen_edit_task"
-                    android:padding="9dp"
-                    android:src="@drawable/ic_edit"
-                    app:layout_constraintBottom_toBottomOf="@id/tvStatusBadge"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/tvStatusBadge"
-                    app:tint="@color/blue" />
-
-                <LinearLayout
-                    android:id="@+id/dateLayout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    app:layout_constraintBottom_toBottomOf="@id/tvTaskTitle"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/tvTaskTitle">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_hourglass"
-                        app:tint="@color/black" />
-
-                    <TextView
-                        android:id="@+id/tvDueDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="09/03/2026"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                    android:ellipsize="end"
+                    android:maxLines="3"
+                    android:textSize="22sp"
+                    tools:text="Atualizar documentação" />
 
                 <View
                     android:id="@+id/divider"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:background="@color/light_gray"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvStatusBadge" />
+                    android:importantForAccessibility="no" />
 
-                <TextView
-                    android:id="@+id/tvResponsibles"
-                    android:layout_width="0dp"
+                <!-- Prazo -->
+                <LinearLayout
+                    android:id="@+id/dateLayout"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="nome responsável 1 | nome responsáv..."
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/divider" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <ImageView
+                        style="@style/Screen.IconTile"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_event" />
 
-            <!-- Description Card -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/screen_due_date"
+                            android:textColor="@color/gray"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvDueDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            tools:text="05/10/2026" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Responsáveis -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        style="@style/Screen.IconTile"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_team_members" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/screen_responsibles"
+                            android:textColor="@color/gray"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvResponsibles"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:fontFamily="sans-serif-medium"
+                            android:maxLines="2"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            tools:text="Diego Alves" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Descrição -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_card"
-                android:orientation="vertical"
-                android:padding="20dp">
+                style="@style/Screen.Card"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/screen_description"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    style="@style/Screen.Overline"
+                    android:text="@string/screen_description" />
 
                 <TextView
                     android:id="@+id/tvDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:lineSpacingExtra="4dp"
-                    android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                    android:textColor="@color/gray"
-                    android:textSize="14sp" />
-
+                    style="@style/Screen.Body"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    tools:text="@string/screen_description_sample" />
             </LinearLayout>
 
-            <!-- Comments Section -->
+            <!-- Comentários -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_card"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/screen_comments"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                style="@style/Screen.Card"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:id="@+id/btnComment"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_button_blue"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_add"
-                        app:tint="@color/white" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/screen_comment"
-                        android:textColor="@color/white"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <!-- Comment Item -->
-                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_card"
-                    android:backgroundTint="@color/bg_light"
-                    android:padding="12dp">
+                    android:gravity="center_vertical"
+                    android:minHeight="40dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/Screen.Overline"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/screen_comments" />
+
+                    <LinearLayout
+                        android:id="@+id/btnComment"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_pill_button_soft"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="16dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_plus"
+                            app:tint="@color/blue_dark" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/screen_comment"
+                            android:textColor="@color/blue_dark"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Modelo substituído pela lista de comentários. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/tvCommenterName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nome integrante"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="editado"
-                        android:textColor="@color/gray"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="@+id/tvCommenterName"
-                        app:layout_constraintStart_toEndOf="@+id/tvCommenterName"
-                        app:layout_constraintTop_toTopOf="@+id/tvCommenterName" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_edit"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/gray" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Lorem ipsum dolor sit amet, consectetur"
-                        android:textColor="@color/gray"
-                        android:textSize="13sp"
-                        app:layout_constraintTop_toBottomOf="@+id/tvCommenterName" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        android:text="@string/screen_member_name" />
+                </LinearLayout>
 
             </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- Footer Buttons -->
+    <!-- Rodapé com as ações da tarefa -->
     <LinearLayout
         android:id="@+id/footerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:elevation="8dp"
-        android:orientation="vertical"
-        android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent">
+        style="@style/Screen.Footer"
+        android:layout_width="0dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnDeleteTask"
+            android:layout_width="@dimen/button_height"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_button_danger_soft"
+            android:contentDescription="@string/screen_delete_task"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_delete"
+            app:tint="@color/status_red_text" />
 
         <LinearLayout
             android:id="@+id/btnTaskAction"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:background="@drawable/bg_button_blue"
-            android:gravity="center">
+            style="@style/Screen.ActionRow"
+            android:layout_width="0dp"
+            android:layout_weight="1">
 
             <ImageView
                 android:id="@+id/ivTaskActionIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/ic_play"
-                app:tint="@color/white" />
+                style="@style/Screen.ActionRow.Icon"
+                android:src="@drawable/ic_play" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:id="@+id/tvTaskActionLabel"
-                android:text="@string/screen_start_task"
-                android:textColor="@color/white"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnDeleteTask"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_button_outline"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/ic_delete"
-                app:tint="@color/blue" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/screen_delete_task"
-                android:textColor="@color/blue"
-                android:textStyle="bold" />
+                style="@style/Screen.ActionRow.Label"
+                android:text="@string/screen_start_task" />
         </LinearLayout>
 
     </LinearLayout>

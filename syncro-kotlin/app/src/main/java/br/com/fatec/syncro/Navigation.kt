@@ -93,6 +93,16 @@ object Navigation {
     private fun quantity(count: Int, singular: String, plural: String) =
         "$count ${if (count == 1) singular else plural}"
 
+    /** Até duas iniciais do nome, exibidas nos avatares de usuários e equipes. */
+    fun initials(name: String): String {
+        val words = name.trim().split(Regex("\\s+")).filter { it.firstOrNull()?.isLetterOrDigit() == true }
+        return when (words.size) {
+            0 -> "?"
+            1 -> words.first().take(1).uppercase()
+            else -> (words.first().take(1) + words.last().take(1)).uppercase()
+        }
+    }
+
     fun teamDescription(activity: AppCompatActivity, label: TextView, description: String) {
         val text = descriptionOrDefault(activity, description)
         label.text = text

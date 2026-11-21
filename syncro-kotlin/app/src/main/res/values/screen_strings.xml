@@ -240,6 +240,55 @@
         <item>Membro</item>
     </string-array>
 
+    <!-- Textos de apoio da interface moderna. -->
+    <string name="app_tagline">Gestão de tarefas colaborativas</string>
+    <string name="auth_welcome_title">Bem-vindo(a) de volta</string>
+    <string name="auth_welcome_subtitle">Informe seu e-mail para acessar suas equipes.</string>
+    <string name="auth_password_title">Digite sua senha</string>
+    <string name="auth_register_title">Crie sua conta</string>
+    <string name="auth_register_subtitle">Leva menos de um minuto para começar a organizar sua equipe.</string>
+    <string name="auth_no_account">Ainda não tem uma conta?</string>
+    <string name="home_greeting">Olá, %1$s</string>
+    <string name="home_subtitle">Acompanhe suas equipes e tarefas.</string>
+    <string name="home_create_team_hint">Comece um novo projeto</string>
+    <string name="home_join_team_hint">Use um código de convite</string>
+    <string name="role_admin_short">Admin</string>
+    <string name="role_member_short">Membro</string>
+    <string name="screen_team_details">Equipe</string>
+    <string name="screen_task_details">Detalhes da tarefa</string>
+    <string name="screen_due_date">Prazo</string>
+    <string name="screen_responsibles">Responsáveis</string>
+    <string name="screen_task_history_subtitle">Tarefas finalizadas desta equipe.</string>
+    <string name="screen_notifications_subtitle">Convites e atividades das suas equipes.</string>
+    <string name="screen_notification_open">Toque para ver detalhes</string>
+    <string name="screen_notifications_activity">Atividade recente</string>
+    <string name="screen_notification_invite_label">Convite pendente</string>
+    <string name="screen_join_team_subtitle">Peça o código ao administrador da equipe e digite-o abaixo.</string>
+    <string name="create_team_subtitle">Dê um nome à sua equipe. Em seguida, você poderá convidar pessoas.</string>
+    <string name="invite_subtitle">Compartilhe o código ou adicione os e-mails de quem deve participar.</string>
+    <string name="invite_code_hint">Quem tiver este código pode entrar na equipe.</string>
+    <string name="invite_by_email">Convidar por e-mail</string>
+    <string name="invite_list_title">Convidados</string>
+    <string name="screen_invite_success_message">Os convidados receberão uma notificação para entrar na equipe.</string>
+    <string name="screen_members_subtitle">Defina papéis e controle quem participa da equipe.</string>
+    <string name="profile_subtitle">Atualize seus dados de acesso.</string>
+    <string name="profile_section_personal">Dados pessoais</string>
+    <string name="profile_section_security">Segurança</string>
+    <string name="screen_comment_history_subtitle">Da versão mais antiga para a atual.</string>
+    <string name="screen_current_version">Versão atual</string>
+    <string name="screen_version_number">Versão %1$d</string>
+    <string name="screen_add_task_subtitle">Preencha os dados da nova tarefa.</string>
+    <string name="screen_edit_task_subtitle">Altere as informações da tarefa.</string>
+    <string name="screen_edit_team_subtitle">Altere o nome e a descrição da equipe.</string>
+    <string name="screen_new_comment_subtitle">Compartilhe uma atualização com a equipe.</string>
+    <string name="screen_confirm_delete_task_message">A tarefa e os comentários dela serão removidos. Essa ação não pode ser desfeita.</string>
+    <string name="screen_confirm_remove_comment_message">O comentário será removido desta tarefa.</string>
+    <string name="screen_confirm_remove_member_message">Este membro perderá o acesso às tarefas da equipe.</string>
+    <string name="screen_confirm_delete_team_message">Todas as tarefas e membros serão desvinculados. Essa ação não pode ser desfeita.</string>
+    <string name="screen_confirm_leave_team_message">Você deixará de ver as tarefas desta equipe até ser convidado(a) novamente.</string>
+    <string name="screen_confirm_logout_message">Para acessar novamente, será preciso informar seu e-mail e sua senha.</string>
+    <string name="screen_member_removed_message">A lista de membros da equipe já foi atualizada.</string>
+
     <string-array
         name="screen_member_roles">
         <item>Membro</item>
