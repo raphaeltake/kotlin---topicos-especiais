@@ -1,0 +1,6 @@
+node_modules/
+*.log
+.env
+# Chave da conta de serviço: nunca versionar (veja README.md).
+*service-account*.json
+*firebase-adminsdk*.json

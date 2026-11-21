@@ -28,6 +28,7 @@ object FirebaseAccountRepository {
         val user = auth.currentUser ?: return false
         syncLocalProfile(user)
         loadRemoteProfile(user)
+        PushNotifications.register()
         return true
     }
 
@@ -46,6 +47,7 @@ object FirebaseAccountRepository {
             syncLocalProfile(user)
             ensureUserDocument(user)
             loadRemoteProfile(user)
+            PushNotifications.register()
             onComplete(null)
         }
     }
@@ -91,6 +93,7 @@ object FirebaseAccountRepository {
                     Workspace.profile.name = name
                     Workspace.profile.email = email
                     Workspace.profile.password = ""
+                    PushNotifications.register()
                     onComplete(null)
                 } else {
                     val error = profileTask.exception
@@ -105,14 +108,19 @@ object FirebaseAccountRepository {
         }
     }
 
-    fun signOut() {
-        auth.signOut()
-        Workspace.profile.name = "Você"
-        Workspace.profile.email = ""
-        Workspace.profile.password = ""
-        Workspace.profile.uid = ""
-        // Evita que a próxima conta veja as equipes da anterior.
-        Workspace.clearTeams()
+    /** Encerra a sessão depois de desvincular o aparelho das notificações push. */
+    fun signOut(onComplete: () -> Unit) {
+        PushNotifications.unregister {
+            LiveUpdates.stop()
+            auth.signOut()
+            Workspace.profile.name = "Você"
+            Workspace.profile.email = ""
+            Workspace.profile.password = ""
+            Workspace.profile.uid = ""
+            // Evita que a próxima conta veja as equipes da anterior.
+            Workspace.clearTeams()
+            onComplete()
+        }
     }
 
     fun updateAccount(

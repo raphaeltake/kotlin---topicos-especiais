@@ -1,0 +1,17 @@
+{
+  "name": "syncro-push",
+  "private": true,
+  "type": "module",
+  "description": "Servidor de push do Syncro: envia pelo Firebase Cloud Messaging (FCM) as notificações registradas no Firestore.",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "firebase emulators:exec --only firestore,auth --project demo-syncro-push \"\\\"$npm_node_execpath\\\" --test push-server.test.mjs\""
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
+  }
+}

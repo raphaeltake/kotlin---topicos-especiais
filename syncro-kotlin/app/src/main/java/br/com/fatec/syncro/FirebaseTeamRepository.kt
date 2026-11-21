@@ -3,15 +3,16 @@ package br.com.fatec.syncro
 import android.content.Context
 import androidx.annotation.StringRes
 import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.DocumentSnapshot.ServerTimestampBehavior.ESTIMATE
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Transaction
 import java.security.SecureRandom
 
@@ -30,8 +31,9 @@ import java.security.SecureRandom
  * arrayUnion/arrayRemove para não sobrescrever mudanças feitas ao mesmo tempo
  * por outro membro. As regras em `firestore.rules` validam cada uma delas.
  *
- * Depois de cada gravação bem-sucedida, a cópia em [Workspace] é atualizada,
- * e é dela que as telas leem.
+ * As equipes chegam em tempo real por [listenTeams] e [listenInvitations].
+ * Depois de cada gravação bem-sucedida, a cópia em [Workspace] também é
+ * atualizada, e é dela que as telas leem.
  */
 object FirebaseTeamRepository {
     const val MAX_NAME_LENGTH = 100
@@ -59,43 +61,47 @@ object FirebaseTeamRepository {
 
     private val random = SecureRandom()
 
-    /** Busca as equipes do usuário e os convites pendentes para o e-mail dele. */
-    fun loadTeams(onComplete: (Result<Unit>) -> Unit) {
-        val user = auth.currentUser ?: return onComplete(Result.failure(notSignedIn()))
-        val email = user.email?.lowercase().orEmpty()
-
-        val teamsTask = teams.whereArrayContains("memberIds", user.uid).get()
-        val invitesTask = if (email.isEmpty()) null
-            else teams.whereArrayContains("invitedEmails", email).get()
-
-        Tasks.whenAllComplete(listOfNotNull(teamsTask, invitesTask)).continueWithTask {
-            if (!teamsTask.isSuccessful) throw teamsTask.exception ?: IllegalStateException()
-
-            val loaded = teamsTask.result.documents
-                .sortedWith(compareBy(nullsLast()) { it.getTimestamp("createdAt") })
-                .map { toTeam(it, user.uid) }
+    /**
+     * Escuta em tempo real as equipes do usuário (veja [LiveUpdates]). Cada
+     * alteração, feita por ele ou por outro membro, substitui a cópia em
+     * [Workspace.teams].
+     */
+    internal fun listenTeams(
+        uid: String,
+        onChange: () -> Unit,
+        onError: (Exception) -> Unit
+    ): ListenerRegistration =
+        teams.whereArrayContains("memberIds", uid).addSnapshotListener { snapshot, error ->
+            if (snapshot == null) return@addSnapshotListener onError(error ?: IllegalStateException())
+            val loaded = snapshot.documents
+                .sortedWith(compareBy(nullsLast()) { it.getTimestamp("createdAt", ESTIMATE) })
+                .map { toTeam(it, uid) }
             Workspace.teams.clear()
             Workspace.teams.addAll(loaded)
             Workspace.teamsLoaded = true
+            onChange()
+        }
 
-            if (invitesTask?.isSuccessful == true) {
-                val memberOf = loaded.map { it.id }.toSet()
-                val invitations = invitesTask.result.documents
-                    .filter { it.id !in memberOf }
-                    .map { Workspace.Invitation(it.id, it.getString("name").orEmpty()) }
-                Workspace.invitations.clear()
-                Workspace.invitations.addAll(invitations)
-            }
-
-            // Tarefas de cada equipe, para a contagem de tarefas ativas na lista.
-            // Se a busca de uma equipe falhar, ela mantém as tarefas que já tinha.
-            Tasks.whenAllComplete(loaded.map { FirebaseTaskRepository.refreshTasks(it) })
-        }.continueWithTask { teamsLoaded ->
-            if (!teamsLoaded.isSuccessful) throw teamsLoaded.exception ?: IllegalStateException()
-            // Avisos dos convites encontrados acima e demais notificações.
-            FirebaseNotificationRepository.refresh()
-        }.addOnCompleteListener { task -> deliver(task, onComplete) {} }
-    }
+    /**
+     * Escuta os convites pendentes para o e-mail do usuário e registra o aviso
+     * de cada convite novo (quem convida conhece só o e-mail).
+     */
+    internal fun listenInvitations(
+        email: String,
+        onChange: () -> Unit,
+        onError: (Exception) -> Unit
+    ): ListenerRegistration =
+        teams.whereArrayContains("invitedEmails", email).addSnapshotListener { snapshot, error ->
+            if (snapshot == null) return@addSnapshotListener onError(error ?: IllegalStateException())
+            val known = Workspace.invitations.map { it.teamId }.toSet()
+            val invitations = snapshot.documents
+                .filter { Workspace.team(it.id) == null }
+                .map { Workspace.Invitation(it.id, it.getString("name").orEmpty()) }
+            Workspace.invitations.clear()
+            Workspace.invitations.addAll(invitations)
+            FirebaseNotificationRepository.registerInvites(invitations.filter { it.teamId !in known })
+            onChange()
+        }
 
     fun createTeam(
         name: String,
@@ -152,7 +158,11 @@ object FirebaseTeamRepository {
                     members = mutableListOf(Workspace.Member(memberName, CREATOR_LABEL, user.uid, email)),
                     createdBy = user.uid,
                     tasksLoaded = true
-                ).also { Workspace.teams.add(it) }
+                ).also { created ->
+                    // A escuta em tempo real pode ter entregado a equipe antes.
+                    Workspace.teams.removeAll { it.id == created.id }
+                    Workspace.teams.add(created)
+                }
             }
         }
     }

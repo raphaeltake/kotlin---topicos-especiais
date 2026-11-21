@@ -8,14 +8,16 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
 /**
  * Notificações do usuário (RF26/UC17) em `users/{uid}/notifications`, com
  * conteúdo, `seen` (visto), data e o vínculo com o evento (equipe e tarefa).
  *
- * - Convites: quem convida conhece só o e-mail, então o próprio convidado
- *   registra o aviso (`invite_{teamId}`) quando o app encontra o convite.
+ * - Convites: quem convida conhece só o e-mail. O servidor de push
+ *   (syncro-push) registra o aviso (`invite_{teamId}`) assim que o convite é
+ *   feito, e o app do convidado também o registra ao encontrar o convite.
  *   Ao responder, o tipo passa a "aceito" ou "recusado" e o registro continua
  *   na lista.
  * - Tarefas: quem atribui, muda a situação ou comenta grava o aviso na lista
@@ -40,28 +42,34 @@ object FirebaseNotificationRepository {
 
     private fun inviteId(teamId: String) = "invite_$teamId"
 
-    fun load(onComplete: (Result<Unit>) -> Unit) {
-        refresh().addOnCompleteListener { task -> deliver(task, onComplete) {} }
-    }
-
     /**
-     * Registra os avisos dos convites pendentes em [Workspace.invitations] e
-     * busca as notificações mais recentes.
+     * Escuta em tempo real as notificações mais recentes do usuário (veja
+     * [LiveUpdates]), que acendem o sino e preenchem a lista.
      */
-    internal fun refresh(): Task<Unit> {
-        val uid = auth.currentUser?.uid ?: return Tasks.forException(notSignedIn())
-        val invitations = Workspace.invitations.toList()
-        return Tasks.whenAllComplete(invitations.map { registerInvite(uid, it) }).continueWithTask {
-            notifications(uid)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(MAX_LOADED.toLong())
-                .get()
-        }.continueWith { query ->
-            val loaded = query.result.documents.map(::toNotification)
-            Workspace.notifications.clear()
-            Workspace.notifications.addAll(loaded)
-            Workspace.notificationsLoaded = true
-            Workspace.hasUnreadNotifications = loaded.any { !it.seen }
+    internal fun listen(
+        uid: String,
+        onChange: () -> Unit,
+        onError: (Exception) -> Unit
+    ): ListenerRegistration =
+        notifications(uid)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(MAX_LOADED.toLong())
+            .addSnapshotListener { snapshot, error ->
+                if (snapshot == null) return@addSnapshotListener onError(error ?: IllegalStateException())
+                val loaded = snapshot.documents.map(::toNotification)
+                Workspace.notifications.clear()
+                Workspace.notifications.addAll(loaded)
+                Workspace.notificationsLoaded = true
+                Workspace.hasUnreadNotifications = loaded.any { !it.seen }
+                onChange()
+            }
+
+    /** Registra o aviso de cada convite pendente encontrado para o e-mail do usuário. */
+    internal fun registerInvites(invitations: List<Workspace.Invitation>) {
+        val uid = auth.currentUser?.uid ?: return
+        invitations.forEach { invitation ->
+            registerInvite(uid, invitation)
+                .addOnFailureListener { Log.w(TAG, "Não foi possível registrar o aviso do convite.", it) }
         }
     }
 
@@ -171,7 +179,7 @@ object FirebaseNotificationRepository {
         type = document.getString("type").orEmpty(),
         content = document.getString("content").orEmpty(),
         seen = document.getBoolean("seen") ?: false,
-        createdAt = document.getTimestamp("createdAt")?.toDate(),
+        createdAt = document.getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toDate(),
         teamId = document.getString("teamId").orEmpty(),
         teamName = document.getString("teamName").orEmpty(),
         taskId = document.getString("taskId").orEmpty()

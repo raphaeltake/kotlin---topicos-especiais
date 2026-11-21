@@ -6,8 +6,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.DocumentSnapshot.ServerTimestampBehavior.ESTIMATE
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import java.util.Date
@@ -24,8 +26,10 @@ import java.util.Date
  * - `teams/{teamId}/history/{eventId}`: um registro por alteração (RF25),
  *   gravado no mesmo lote ou transação da própria alteração.
  *
- * Depois de cada gravação, a cópia em [Workspace] é atualizada e os
- * interessados recebem notificação (FirebaseNotificationRepository).
+ * Tarefas, comentários e histórico chegam em tempo real pelas funções
+ * `listen*`. Depois de cada gravação, a cópia em [Workspace] também é
+ * atualizada e os interessados recebem notificação
+ * (FirebaseNotificationRepository).
  */
 object FirebaseTaskRepository {
     const val MAX_TITLE_LENGTH = 100
@@ -69,19 +73,22 @@ object FirebaseTaskRepository {
     private fun history(teamId: String): CollectionReference =
         firestore.collection(TEAMS_COLLECTION).document(teamId).collection(HISTORY_COLLECTION)
 
-    fun loadTasks(team: Workspace.Team, onComplete: (Result<Unit>) -> Unit) {
-        refreshTasks(team).addOnCompleteListener { task -> deliver(task, onComplete) {} }
-    }
-
     /**
-     * Substitui as tarefas da equipe em memória pelas do Firestore, mantendo os
-     * comentários e o histórico já carregados. Tarefas criadas por outra pessoa
-     * desde a última busca acendem o indicador de novidades da aba de tarefas.
+     * Escuta em tempo real as tarefas da equipe (veja [LiveUpdates]) e
+     * substitui as que estão em memória, mantendo os comentários e o histórico
+     * já carregados. Tarefas criadas por outra pessoa acendem o indicador de
+     * novidades da aba de tarefas.
      */
-    internal fun refreshTasks(team: Workspace.Team): Task<Unit> =
-        tasks(team.id).get().continueWith { query ->
+    internal fun listenTasks(
+        teamId: String,
+        onChange: () -> Unit,
+        onError: (Exception) -> Unit
+    ): ListenerRegistration =
+        tasks(teamId).addSnapshotListener { snapshot, error ->
+            if (snapshot == null) return@addSnapshotListener onError(error ?: IllegalStateException())
+            val team = Workspace.team(teamId) ?: return@addSnapshotListener
             val uid = auth.currentUser?.uid
-            val documents = query.result.documents
+            val documents = snapshot.documents
             val previous = team.tasks.associateBy { it.id }
             if (team.tasksLoaded &&
                 documents.any { it.id !in previous && it.getString("createdBy") != uid }
@@ -92,6 +99,7 @@ object FirebaseTaskRepository {
             team.tasks.clear()
             team.tasks.addAll(loaded)
             team.tasksLoaded = true
+            onChange()
         }
 
     /** UC12/UC14: cria a tarefa já com os responsáveis escolhidos entre os membros. */
@@ -141,7 +149,8 @@ object FirebaseTaskRepository {
                         commentsLoaded = true,
                         createdBy = uid
                     ).also { created ->
-                        team.tasks.add(created)
+                        // A escuta em tempo real já pode ter trazido a tarefa.
+                        if (team.tasks.none { it.id == created.id }) team.tasks.add(created)
                         FirebaseNotificationRepository.notifyTask(
                             team, created, FirebaseNotificationRepository.TYPE_TASK_ASSIGNED, responsibleIds,
                             FirebaseNotificationRepository.assignedContent(actorName(team), created, team)
@@ -299,16 +308,22 @@ object FirebaseTaskRepository {
         }
     }
 
-    fun loadComments(team: Workspace.Team, item: Workspace.Task, onComplete: (Result<Unit>) -> Unit) {
-        comments(team.id, item.id).orderBy("createdAt").get().addOnCompleteListener { task ->
-            deliver(task, onComplete) { snapshot ->
-                val loaded = snapshot.documents.map(::toComment)
-                item.comments.clear()
-                item.comments.addAll(loaded)
-                item.commentsLoaded = true
-            }
+    /** Escuta em tempo real os comentários da tarefa, do mais antigo para o mais recente. */
+    fun listenComments(
+        teamId: String,
+        taskId: String,
+        onChange: () -> Unit,
+        onError: (Exception) -> Unit
+    ): ListenerRegistration =
+        comments(teamId, taskId).orderBy("createdAt").addSnapshotListener { snapshot, error ->
+            if (snapshot == null) return@addSnapshotListener onError(error ?: IllegalStateException())
+            val item = Workspace.team(teamId)?.tasks?.firstOrNull { it.id == taskId }
+                ?: return@addSnapshotListener
+            item.comments.clear()
+            item.comments.addAll(snapshot.documents.map(::toComment))
+            item.commentsLoaded = true
+            onChange()
         }
-    }
 
     /** UC16: publica o comentário (autor e data) e avisa os interessados na tarefa. */
     fun addComment(
@@ -342,7 +357,8 @@ object FirebaseTaskRepository {
             .addOnCompleteListener { task ->
                 deliver(task, onComplete) {
                     val date = Date()
-                    item.comments.add(
+                    // A escuta em tempo real já pode ter trazido o comentário.
+                    if (item.comments.none { it.id == ref.id }) item.comments.add(
                         Workspace.Comment(
                             text, mutableListOf(), authorName, id = ref.id, authorId = uid,
                             createdAt = date, updatedAt = date
@@ -434,25 +450,32 @@ object FirebaseTaskRepository {
     }
 
     /**
-     * Histórico da equipe (os registros mais recentes) ou de uma tarefa, do
-     * mais recente para o mais antigo.
+     * Escuta em tempo real o histórico da equipe (os registros mais recentes)
+     * ou de uma tarefa ([taskId]), do mais recente para o mais antigo.
      */
-    fun loadHistory(team: Workspace.Team, item: Workspace.Task?, onComplete: (Result<Unit>) -> Unit) {
-        val query = if (item == null) {
-            history(team.id).orderBy("createdAt", Query.Direction.DESCENDING).limit(MAX_HISTORY_LOADED)
+    fun listenHistory(
+        teamId: String,
+        taskId: String?,
+        onChange: () -> Unit,
+        onError: (Exception) -> Unit
+    ): ListenerRegistration {
+        val query = if (taskId == null) {
+            history(teamId).orderBy("createdAt", Query.Direction.DESCENDING).limit(MAX_HISTORY_LOADED)
         } else {
             // Filtro simples, sem ordenação no servidor, para dispensar índice composto.
-            history(team.id).whereEqualTo("taskId", item.id)
+            history(teamId).whereEqualTo("taskId", taskId)
         }
-        query.get().addOnCompleteListener { task ->
-            deliver(task, onComplete) { snapshot ->
-                val entries = snapshot.documents.map(::toHistoryEntry)
-                    .sortedByDescending { it.createdAt ?: Date(0) }
-                val target = item?.history ?: team.history
-                target.clear()
-                target.addAll(entries)
-                if (item != null) item.historyLoaded = true else team.historyLoaded = true
-            }
+        return query.addSnapshotListener { snapshot, error ->
+            if (snapshot == null) return@addSnapshotListener onError(error ?: IllegalStateException())
+            val team = Workspace.team(teamId) ?: return@addSnapshotListener
+            val item = taskId?.let { id -> team.tasks.firstOrNull { it.id == id } ?: return@addSnapshotListener }
+            val entries = snapshot.documents.map(::toHistoryEntry)
+                .sortedByDescending { it.createdAt ?: Date(0) }
+            val target = item?.history ?: team.history
+            target.clear()
+            target.addAll(entries)
+            if (item != null) item.historyLoaded = true else team.historyLoaded = true
+            onChange()
         }
     }
 
@@ -523,8 +546,8 @@ object FirebaseTaskRepository {
             id = document.id,
             authorId = document.getString("authorId").orEmpty(),
             historyDates = versions.map(::versionDate).toMutableList(),
-            createdAt = document.getTimestamp("createdAt")?.toDate(),
-            updatedAt = document.getTimestamp("updatedAt")?.toDate()
+            createdAt = document.getTimestamp("createdAt", ESTIMATE)?.toDate(),
+            updatedAt = document.getTimestamp("updatedAt", ESTIMATE)?.toDate()
         )
     }
 
@@ -547,7 +570,7 @@ object FirebaseTaskRepository {
         oldValue = document.getString("oldValue").orEmpty(),
         newValue = document.getString("newValue").orEmpty(),
         userName = document.getString("userName").orEmpty(),
-        createdAt = document.getTimestamp("createdAt")?.toDate()
+        createdAt = document.getTimestamp("createdAt", ESTIMATE)?.toDate()
     )
 
     private fun toStatusValue(status: Workspace.Status) = when (status) {

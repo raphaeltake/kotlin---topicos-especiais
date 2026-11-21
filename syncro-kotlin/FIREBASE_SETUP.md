@@ -24,6 +24,8 @@ vale para a criação de equipes.
 | --- | --- |
 | `users/{uid}` | `name`, `email`, `createdAt`, `updatedAt` |
 | `users/{uid}/notifications/{id}` | `type`, `content`, `seen`, `createdAt`, `teamId`, `teamName`, `taskId`, `actorId` |
+| `users/{uid}/fcmTokens/{token}` | `updatedAt` (o id do documento é o token FCM do aparelho) |
+| `pushServer/state` | Até onde o servidor de push já enviou os avisos (só o servidor acessa) |
 | `teams/{teamId}` | `name`, `description`, `code`, `createdBy`, `memberIds`, `adminIds`, `memberNames`, `memberEmails`, `invitedEmails`, `createdAt`, `updatedAt` |
 | `teamCodes/{code}` | `teamId`, `name`, `description`, `createdAt` |
 | `teams/{teamId}/tasks/{taskId}` | `title`, `description`, `responsibleIds`, `responsibleNames`, `dueDate` (aaaa-mm-dd), `status` (`pending`, `in_progress`, `finished`), `createdBy`, `createdAt`, `updatedAt` |
@@ -47,9 +49,10 @@ registros depois de gravados.
 
 As notificações ficam em `users/{uid}/notifications`. Avisos de tarefa
 (atribuição, mudança de situação e novo comentário) são gravados por quem fez a
-alteração na lista de cada interessado. Avisos de convite são registrados pelo
-próprio convidado quando o app encontra o convite, porque quem convida conhece
-só o e-mail.
+alteração na lista de cada interessado. Avisos de convite são registrados pela
+servidor de push (`syncro-push`), que troca o e-mail convidado pela conta, ou
+pelo próprio convidado quando o app encontra o convite (por exemplo, se a conta
+foi criada depois do convite).
 
 As operações ficam em `FirebaseTeamRepository` (equipes),
 `FirebaseTaskRepository` (tarefas, comentários e histórico) e
@@ -74,6 +77,53 @@ As operações ficam em `FirebaseTeamRepository` (equipes),
 | Editar e apagar comentário | O autor ou um administrador (cada edição guarda a versão anterior em `history`) |
 | Ler, marcar como lida e apagar notificações | Só o dono |
 | Enviar notificação de tarefa | Membro da equipe, para os responsáveis (e, em mudança de situação e comentário, para quem criou a tarefa) |
+| Registrar e apagar o token FCM do aparelho | Só o dono (ninguém lê pelo app; o servidor de push lê com acesso de administrador) |
+
+## Notificações push (Firebase Cloud Messaging)
+
+Cada notificação gravada em `users/{uid}/notifications` também chega ao
+celular do destinatário pela barra de notificações do Android, mesmo com o app
+fechado. Tocar nela abre a tela de notificações do app.
+
+Como funciona:
+
+1. Ao entrar (ou ao abrir o app já conectado), o app grava o token FCM do
+   aparelho em `users/{uid}/fcmTokens/{token}` (`PushNotifications.register`).
+   O FCM pode trocar o token a qualquer momento; o novo é gravado por
+   `SyncroMessagingService.onNewToken`.
+2. O servidor de push (pasta `syncro-push`, na raiz do repositório) acompanha
+   o Firestore em tempo real e envia as mensagens:
+   - quando um aviso de tarefa (atribuição, mudança de situação ou comentário)
+     é criado na lista de alguém;
+   - quando um e-mail entra em `invitedEmails` de uma equipe: procura a conta
+     com esse e-mail, registra (ou reabre) o aviso `invite_{teamId}` e envia o
+     push. E-mails sem conta são ignorados.
+   Tokens que o FCM informa como inválidos são apagados.
+3. As mensagens levam só dados (`uid`, `notificationId`, `title`, `body`...).
+   O app confere se a conta conectada é a destinatária antes de exibir e cria
+   o canal "Convites e tarefas".
+4. Ao sair da conta, o app apaga o token da lista e o invalida no FCM, para que
+   outra conta usada no mesmo aparelho não receba os avisos da anterior.
+
+No Android 13 ou mais recente, o app pede a autorização de notificações ao abrir
+a lista de equipes. Sem ela, os avisos continuam aparecendo no sino do app.
+
+Com o app aberto, as telas não dependem do push: `LiveUpdates` mantém escutas
+em tempo real do Firestore (equipes, convites, notificações e tarefas; na tela
+da tarefa, os comentários; no histórico, os registros), e qualquer alteração de
+qualquer membro redesenha a tela na hora. As escutas param com o app em segundo
+plano e funcionam sem o servidor de push.
+
+O envio funciona no plano gratuito (Spark), mas o servidor de push precisa
+estar rodando: enquanto estiver parado, os avisos ficam só no sino, e ao voltar
+ele envia o que ficou pendente. Instruções em `../syncro-push/README.md`.
+
+O servidor consulta as notificações de todos os usuários de uma vez, o que
+exige o índice de `firestore.indexes.json`. Publique-o junto com as regras:
+
+```bash
+firebase deploy --only firestore
+```
 
 ## Testes das regras
 

@@ -108,6 +108,8 @@
     <string name="notification_invite_unavailable">Este convite não está mais disponível.</string>
     <string name="notification_task_unavailable">Esta tarefa não está mais disponível.</string>
     <string name="notification_team_unavailable">Esta equipe não está mais disponível.</string>
+    <string name="push_channel_name">Convites e tarefas</string>
+    <string name="push_channel_description">Convites para equipes, tarefas atribuídas a você, mudanças de situação e novos comentários.</string>
     <string name="retry">Tentar novamente</string>
     <string name="create_account">Criar conta</string>
     <string name="join_team_button">Entrar em equipe</string>

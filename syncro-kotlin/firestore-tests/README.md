@@ -9,7 +9,7 @@ app (`FirebaseTeamRepository`, `FirebaseTaskRepository` e
 | --- | --- |
 | `teams.test.mjs` | Criação e edição de equipes, código de convite, convites, ingresso, papéis, remoção, saída e exclusão |
 | `tasks.test.mjs` | Tarefas, responsáveis, situação, comentários e histórico |
-| `notifications.test.mjs` | Avisos de convite e de tarefas, leitura e marcação como lida |
+| `notifications.test.mjs` | Avisos de convite e de tarefas, leitura e marcação como lida, tokens do FCM |
 
 ## Como rodar
 

@@ -27,44 +27,70 @@ open class WorkspaceActivity : AppCompatActivity() {
     private val returnToCaller get() = intent.getBooleanExtra(Navigation.RETURN_TO_CALLER, false)
     private var activeDialog: androidx.appcompat.app.AlertDialog? = null
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge() }
-    override fun onResume() { super.onResume(); render(); refresh() }
+
+    override fun onStart() {
+        super.onStart()
+        LiveUpdates.screenStarted()
+    }
+
+    /**
+     * Mostra o que já está em memória. Equipes, tarefas e notificações chegam
+     * em tempo real por [LiveUpdates]; comentários e histórico, pela escuta
+     * desta tela. Cada alteração redesenha a tela.
+     */
+    override fun onResume() {
+        super.onResume()
+        render()
+        LiveUpdates.onChange = ::onLiveChange
+        LiveUpdates.onError = ::showLoadError
+        LiveUpdates.listen()
+        listenScreen()
+    }
+
+    override fun onPause() {
+        LiveUpdates.onChange = null
+        LiveUpdates.onError = null
+        screenListener?.remove()
+        screenListener = null
+        super.onPause()
+    }
+
+    override fun onStop() {
+        LiveUpdates.screenStopped()
+        super.onStop()
+    }
 
     /** No histórico aberto a partir de uma tarefa, só os registros dela. */
     private val historyTask get() = if (screen == "history") task else null
 
+    /** Escuta dos dados que só esta tela usa: comentários da tarefa ou histórico. */
+    private var screenListener: com.google.firebase.firestore.ListenerRegistration? = null
+
+    private fun listenScreen() {
+        screenListener?.remove()
+        val teamId = intent.getStringExtra(Navigation.TEAM) ?: return
+        val taskId = intent.getStringExtra(Navigation.TASK)
+        // Se a equipe ou a tarefa deixar de existir, a própria tela se fecha ao redesenhar.
+        val onError: (Exception) -> Unit = { error -> android.util.Log.w("SyncroLive", "Escuta da tela encerrada.", error) }
+        screenListener = when (screen) {
+            "task" -> taskId?.let { FirebaseTaskRepository.listenComments(teamId, it, LiveUpdates::changed, onError) }
+            "history" -> FirebaseTaskRepository.listenHistory(teamId, taskId, LiveUpdates::changed, onError)
+            else -> null
+        }
+    }
+
     /**
-     * Busca no Firestore os dados da tela atual e redesenha quando chegarem.
-     * Se a busca falhar, informa o erro e oferece nova tentativa (UC09 A1,
-     * UC13 A2 e UC17 A4).
+     * Dados alterados, por este usuário ou por outro membro: redesenha a tela.
+     * Telas com campos de texto só atualizam o sino, para não apagar o que
+     * está sendo digitado.
      */
-    private fun refresh() {
-        val current = team
-        val onLoaded = alive<Result<Unit>> { result ->
-            if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) render()
-            result.onFailure { error -> showLoadError(error) }
-        }
-        when (screen) {
-            // Equipes, membros, convites e notificações.
-            "team", "members", "notifications" -> FirebaseTeamRepository.loadTeams(onLoaded)
-            "history" -> if (current != null) FirebaseTaskRepository.loadTasks(current, alive { result ->
-                if (result.isFailure) onLoaded(result)
-                else FirebaseTaskRepository.loadHistory(current, historyTask, onLoaded)
-            })
-            // Atualiza a tarefa (status, dados ou exclusão) e depois os comentários.
-            "task" -> if (current != null) FirebaseTaskRepository.loadTasks(current, alive { result ->
-                val item = task
-                if (result.isFailure || item == null) onLoaded(result)
-                else FirebaseTaskRepository.loadComments(current, item, onLoaded)
-            })
-        }
-        // Nas demais telas, basta atualizar o sino de notificações.
-        if (screen !in listOf("team", "members", "notifications")) {
-            FirebaseNotificationRepository.load(alive { if (!isFinishing) Navigation.toolbar(this, current?.id) })
-        }
+    private fun onLiveChange() {
+        if (screen in listOf("join", "profile", "success")) Navigation.toolbar(this, team?.id) else render()
     }
 
     private var loadError: com.google.android.material.snackbar.Snackbar? = null
 
+    /** Falha na escuta: informa o erro e oferece nova tentativa (UC09 A1, UC13 A2 e UC17 A4). */
     private fun showLoadError(error: Throwable) {
         loadError?.dismiss()
         loadError = com.google.android.material.snackbar.Snackbar
@@ -73,11 +99,12 @@ open class WorkspaceActivity : AppCompatActivity() {
                 errorMessage(error),
                 com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE
             )
-            .setAction(R.string.retry) { refresh() }
+            .setAction(R.string.retry) { LiveUpdates.listen(); listenScreen() }
             .apply { show() }
     }
 
     private fun render() {
+        val scroll = Navigation.scrollPosition(this)
         val current = team
         if (screen in listOf("team", "task", "members", "history", "success") && current == null) { Navigation.home(this); return }
         if (screen == "task" && task == null) { finish(); return }
@@ -113,6 +140,7 @@ open class WorkspaceActivity : AppCompatActivity() {
             "profile" -> bindProfile()
             else -> bindTeam()
         }
+        Navigation.restoreScroll(this, scroll)
     }
     private fun click(id: Int, action: () -> Unit) {
         findViewById<View>(id)?.apply { isClickable = true; isFocusable = true; setOnClickListener { action() } }
@@ -342,11 +370,13 @@ open class WorkspaceActivity : AppCompatActivity() {
         click(R.id.membersTab) {
             current.hasNewMembers = false
             updateTeamCounters()
+            showingMembers = true
             showTeamPanel(showMembers = true)
         }
         click(R.id.tasksTab) {
             current.hasNewTasks = false
             updateTeamCounters()
+            showingMembers = false
             showTeamPanel(showMembers = false)
         }
         findViewById<View>(R.id.btnManageMembers)?.visibility = if (current.admin) View.VISIBLE else View.GONE
@@ -363,8 +393,11 @@ open class WorkspaceActivity : AppCompatActivity() {
         }
         bindTasks(false)
         bindInlineMembers()
-        showTeamPanel(showMembers = false)
+        showTeamPanel(showingMembers)
     }
+
+    /** Aba aberta na tela da equipe, mantida quando a tela é redesenhada. */
+    private var showingMembers = false
 
     private fun bindInlineMembers() {
         val list = findViewById<LinearLayout>(R.id.membersList) ?: return
@@ -578,8 +611,8 @@ open class WorkspaceActivity : AppCompatActivity() {
                 button.isEnabled = false
                 FirebaseTaskRepository.advanceTask(team!!, item, alive { result ->
                     render()
-                    // Situação mudada por outra pessoa: busca a versão atual.
-                    result.onFailure { error -> message(errorMessage(error)); refresh() }
+                    // Situação mudada por outra pessoa: a escuta já trouxe a versão atual.
+                    result.onFailure { error -> message(errorMessage(error)) }
                 })
             }
             // Finalizar não tem volta, então pede confirmação.

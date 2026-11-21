@@ -19,11 +19,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         if (FirebaseAccountRepository.restoreSession()) {
-            startActivity(
-                Intent(this, TeamsActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-            )
+            val home = Intent(this, TeamsActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            // Toque em uma notificação push: abre as notificações sobre a tela inicial.
+            if (intent.getBooleanExtra(PushNotifications.EXTRA_OPEN_NOTIFICATIONS, false)) {
+                startActivities(
+                    arrayOf(
+                        home,
+                        Intent(this, WorkspaceActivity::class.java)
+                            .putExtra(Navigation.SCREEN, "notifications")
+                    )
+                )
+            } else {
+                startActivity(home)
+            }
             finish()
             return
         }

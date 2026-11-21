@@ -153,6 +153,18 @@ service cloud.firestore {
             || (resource.data.type in inviteTypes() && request.resource.data.type in inviteTypes()))
           && (!changed().hasAny(['createdAt']) || request.resource.data.createdAt == request.time);
       }
+
+      // Tokens do Firebase Cloud Messaging (FCM), um por aparelho conectado à
+      // conta (o id do documento é o token). O app grava ao entrar e apaga ao
+      // sair; o servidor de push (syncro-push) lê a lista para enviar as notificações.
+      match /fcmTokens/{token} {
+        allow delete: if signedIn() && request.auth.uid == userId;
+
+        allow create, update: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['updatedAt'])
+          && request.resource.data.updatedAt == request.time;
+      }
     }
 
     // Uma equipe é um único documento:

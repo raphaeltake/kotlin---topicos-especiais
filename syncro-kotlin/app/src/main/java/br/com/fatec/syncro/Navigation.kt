@@ -1,10 +1,14 @@
 package br.com.fatec.syncro
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.NestedScrollView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 object Navigation {
@@ -50,6 +54,26 @@ object Navigation {
         }
     }
 
+    /**
+     * Posição de rolagem da tela. As telas são redesenhadas a cada alteração
+     * recebida em tempo real, e a posição é restaurada com [restoreScroll].
+     */
+    fun scrollPosition(activity: Activity): Int? =
+        scrollView(activity.findViewById(android.R.id.content))?.scrollY
+
+    fun restoreScroll(activity: Activity, position: Int?) {
+        if (position == null || position == 0) return
+        scrollView(activity.findViewById(android.R.id.content))?.let { view ->
+            view.post { view.scrollTo(0, position) }
+        }
+    }
+
+    private fun scrollView(view: View?): View? = when (view) {
+        is ScrollView, is NestedScrollView -> view
+        is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { scrollView(view.getChildAt(it)) }
+        else -> null
+    }
+
     /** Texto exibido para a descrição da equipe, com alternativa quando estiver vazia. */
     fun descriptionOrDefault(context: Context, description: String) =
         description.ifBlank { context.getString(R.string.screen_no_description) }
@@ -87,10 +111,14 @@ object Navigation {
         val view = activity.layoutInflater.inflate(R.layout.dialog_logout, null)
         val dialog = MaterialAlertDialogBuilder(activity).setView(view).create()
         view.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
-        view.findViewById<View>(R.id.btnConfirmLogout).setOnClickListener {
-            FirebaseAccountRepository.signOut()
-            dialog.dismiss()
-            activity.startActivity(Intent(activity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        view.findViewById<View>(R.id.btnConfirmLogout).setOnClickListener { button ->
+            button.isEnabled = false
+            dialog.setCancelable(false)
+            FirebaseAccountRepository.signOut {
+                if (activity.isDestroyed) return@signOut
+                dialog.dismiss()
+                activity.startActivity(Intent(activity, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            }
         }
         dialog.show()
     }

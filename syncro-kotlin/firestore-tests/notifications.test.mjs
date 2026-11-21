@@ -56,6 +56,10 @@ await check('registra a resposta ao convite', true, () => updateDoc(notification
 await check('reabre o aviso quando é convidado de novo', true, () => updateDoc(notification(bob, 'bob', `invite_${teamId}`),
   { type: 'team_invite', seen: false, createdAt: serverTimestamp() }));
 await check('não altera o conteúdo', false, () => updateDoc(notification(bob, 'bob', `invite_${teamId}`), { content: 'Outro' }));
+await check('responde ao convite registrado pelo servidor de push (sem actorId)', true, async () => {
+  await env.withSecurityRulesDisabled((c) => setDoc(notification(c.firestore(), 'bob', 'invite_team2'), inviteNotice({ teamId: 'team2', actorId: '' })));
+  return updateDoc(notification(bob, 'bob', 'invite_team2'), { type: 'team_invite_declined', seen: true });
+});
 await check('não transforma convite em aviso de tarefa', false, () => updateDoc(notification(bob, 'bob', `invite_${teamId}`), { type: 'task_status' }));
 
 // --- Tarefas (UC17): atribuição, situação e comentário ---
@@ -85,5 +89,16 @@ await check('outra pessoa não apaga avisos', false, async () => {
   await env.withSecurityRulesDisabled(async (c) => { id = (await getDocs(notifications(c.firestore(), 'alice'))).docs[0].id; });
   return deleteDoc(notification(dave, 'alice', id));
 });
+
+// --- Tokens do FCM (PushNotifications): um por aparelho conectado ---
+const fcmToken = (db, uid, token = 'aparelho1:APA91b-token_1') => doc(db, 'users', uid, 'fcmTokens', token);
+await check('registra o token do aparelho', true, () => setDoc(fcmToken(dave, 'dave'), { updatedAt: serverTimestamp() }));
+await check('atualiza o token já registrado', true, () => setDoc(fcmToken(dave, 'dave'), { updatedAt: serverTimestamp() }));
+await check('não registra token na conta de outra pessoa', false, () => setDoc(fcmToken(eve, 'dave', 'outro'), { updatedAt: serverTimestamp() }));
+await check('token com campos extras é recusado', false, () => setDoc(fcmToken(dave, 'dave', 'outro'), { updatedAt: serverTimestamp(), uid: 'alice' }));
+await check('token com data do aparelho é recusado', false, () => setDoc(fcmToken(dave, 'dave', 'outro'), { updatedAt: new Date() }));
+await check('ninguém lê os tokens pelo app', false, () => getDocs(collection(dave, 'users', 'dave', 'fcmTokens')));
+await check('outra pessoa não apaga o token', false, () => deleteDoc(fcmToken(alice, 'dave')));
+await check('apaga o próprio token ao sair', true, () => deleteDoc(fcmToken(dave, 'dave')));
 
 await env.cleanup();
