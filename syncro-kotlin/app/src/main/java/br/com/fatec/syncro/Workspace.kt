@@ -71,10 +71,7 @@ object Workspace {
         /** Falso até as tarefas serem buscadas no Firestore pela primeira vez. */
         var tasksLoaded: Boolean = false,
         /** E-mails convidados que ainda não responderam. */
-        val invitedEmails: MutableList<String> = mutableListOf(),
-        /** Alterações nas tarefas da equipe, da mais recente para a mais antiga. */
-        val history: MutableList<HistoryEntry> = mutableListOf(),
-        var historyLoaded: Boolean = false
+        val invitedEmails: MutableList<String> = mutableListOf()
     ) {
         val isCreator get() = createdBy.isNotEmpty() && createdBy == profile.uid
 

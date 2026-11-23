@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Um registro do histórico (RF25): tarefa, quem fez a alteração, valores
+<!-- Um registro do histórico da tarefa (RF25): quem fez a alteração, valores
      anterior e novo e a data. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,14 +9,6 @@
     android:background="@drawable/bg_card"
     android:orientation="vertical"
     android:padding="16dp">
-
-    <TextView
-        android:id="@+id/tvHistoryTask"
-        style="@style/Screen.Overline"
-        android:layout_marginBottom="6dp"
-        android:textColor="@color/blue"
-        android:textSize="11sp"
-        tools:text="@string/screen_task_title" />
 
     <TextView
         android:id="@+id/tvHistoryAction"

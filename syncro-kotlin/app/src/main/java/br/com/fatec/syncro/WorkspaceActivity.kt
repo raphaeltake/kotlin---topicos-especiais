@@ -74,7 +74,7 @@ open class WorkspaceActivity : AppCompatActivity() {
         val onError: (Exception) -> Unit = { error -> android.util.Log.w("SyncroLive", "Escuta da tela encerrada.", error) }
         screenListener = when (screen) {
             "task" -> taskId?.let { FirebaseTaskRepository.listenComments(teamId, it, LiveUpdates::changed, onError) }
-            "history" -> FirebaseTaskRepository.listenHistory(teamId, taskId, LiveUpdates::changed, onError)
+            "history" -> taskId?.let { FirebaseTaskRepository.listenHistory(teamId, it, LiveUpdates::changed, onError) }
             else -> null
         }
     }
@@ -521,39 +521,30 @@ open class WorkspaceActivity : AppCompatActivity() {
         )
     }
     /**
-     * Histórico (RF25): aberto pela equipe, mostra as tarefas finalizadas e as
-     * alterações recentes; aberto por uma tarefa, só as alterações dela.
+     * Histórico (RF25): aberto pela equipe, mostra só as tarefas finalizadas;
+     * aberto por uma tarefa, só as alterações dela.
      */
     private fun bindHistory() {
-        val current = team!!
-        val item = historyTask
         bindTasks(true)
+        val item = historyTask ?: return
         val anchor = findViewById<View>(android.R.id.content).findViewWithTag<View>("task_item") ?: return
         val list = anchor.parent as ViewGroup
-        if (item != null) {
-            text(R.id.tvTasksTitle, getString(R.string.history_task_title))
-            // O aviso de "tarefas finalizadas" só faz sentido no histórico da equipe.
-            findViewById<View>(R.id.historySubtitleCard)?.visibility = View.GONE
-            (0 until list.childCount).map { list.getChildAt(it) }
-                .filter { it.tag == "task_item" }
-                .forEach { list.removeView(it) }
-        }
+        text(R.id.tvTasksTitle, getString(R.string.history_task_title))
+        // O aviso de "tarefas finalizadas" só faz sentido no histórico da equipe.
+        findViewById<View>(R.id.historySubtitleCard)?.visibility = View.GONE
+        (0 until list.childCount).map { list.getChildAt(it) }
+            .filter { it.tag == "task_item" }
+            .forEach { list.removeView(it) }
         list.addView(TextView(this, null, 0, R.style.Screen_Overline).apply {
             text = getString(R.string.history_changes_section)
-            setPadding(0, if (item == null) dp(24) else dp(4), 0, dp(2))
+            setPadding(0, dp(4), 0, dp(2))
         })
-        val entries = item?.history ?: current.history
-        val loaded = item?.historyLoaded ?: current.historyLoaded
-        entries.forEach { list.addView(historyRow(list, it, showTask = item == null)) }
-        if (entries.isEmpty() && loaded) list.addView(emptyState(this, getString(R.string.history_empty)))
+        item.history.forEach { list.addView(historyRow(list, it)) }
+        if (item.history.isEmpty() && item.historyLoaded) list.addView(emptyState(this, getString(R.string.history_empty)))
     }
 
-    private fun historyRow(parent: ViewGroup, entry: Workspace.HistoryEntry, showTask: Boolean): View {
+    private fun historyRow(parent: ViewGroup, entry: Workspace.HistoryEntry): View {
         val row = layoutInflater.inflate(R.layout.item_history_entry, parent, false)
-        row.findViewById<TextView>(R.id.tvHistoryTask).apply {
-            text = entry.taskTitle
-            visibility = if (showTask) View.VISIBLE else View.GONE
-        }
         row.findViewById<TextView>(R.id.tvHistoryAction).text = getString(historyAction(entry), entry.userName)
         val detail = historyDetail(entry)
         row.findViewById<TextView>(R.id.tvHistoryDetail).apply {
@@ -561,11 +552,6 @@ open class WorkspaceActivity : AppCompatActivity() {
             visibility = if (detail.isNullOrEmpty()) View.GONE else View.VISIBLE
         }
         row.findViewById<TextView>(R.id.tvHistoryDate).text = DueDates.formatDateTime(entry.createdAt)
-        // Registros de tarefas que ainda existem abrem os detalhes delas.
-        if (showTask && team?.tasks?.any { it.id == entry.taskId } == true) {
-            row.setBackgroundResource(R.drawable.bg_card_pressable)
-            row.setOnClickListener { go("task", entry.taskId) }
-        }
         return row
     }
 

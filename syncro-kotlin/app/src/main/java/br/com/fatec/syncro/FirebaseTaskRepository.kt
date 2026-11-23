@@ -10,7 +10,6 @@ import com.google.firebase.firestore.DocumentSnapshot.ServerTimestampBehavior.ES
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import java.util.Date
 
@@ -450,34 +449,26 @@ object FirebaseTaskRepository {
     }
 
     /**
-     * Escuta em tempo real o histórico da equipe (os registros mais recentes)
-     * ou de uma tarefa ([taskId]), do mais recente para o mais antigo.
+     * Escuta em tempo real o histórico de uma tarefa ([taskId]), do mais
+     * recente para o mais antigo.
      */
     fun listenHistory(
         teamId: String,
-        taskId: String?,
+        taskId: String,
         onChange: () -> Unit,
         onError: (Exception) -> Unit
-    ): ListenerRegistration {
-        val query = if (taskId == null) {
-            history(teamId).orderBy("createdAt", Query.Direction.DESCENDING).limit(MAX_HISTORY_LOADED)
-        } else {
-            // Filtro simples, sem ordenação no servidor, para dispensar índice composto.
-            history(teamId).whereEqualTo("taskId", taskId)
-        }
-        return query.addSnapshotListener { snapshot, error ->
+    ): ListenerRegistration =
+        // Filtro simples, sem ordenação no servidor, para dispensar índice composto.
+        history(teamId).whereEqualTo("taskId", taskId).addSnapshotListener { snapshot, error ->
             if (snapshot == null) return@addSnapshotListener onError(error ?: IllegalStateException())
-            val team = Workspace.team(teamId) ?: return@addSnapshotListener
-            val item = taskId?.let { id -> team.tasks.firstOrNull { it.id == id } ?: return@addSnapshotListener }
+            val item = Workspace.team(teamId)?.tasks?.firstOrNull { it.id == taskId } ?: return@addSnapshotListener
             val entries = snapshot.documents.map(::toHistoryEntry)
                 .sortedByDescending { it.createdAt ?: Date(0) }
-            val target = item?.history ?: team.history
-            target.clear()
-            target.addAll(entries)
-            if (item != null) item.historyLoaded = true else team.historyLoaded = true
+            item.history.clear()
+            item.history.addAll(entries)
+            item.historyLoaded = true
             onChange()
         }
-    }
 
     /** Responsáveis e quem criou a tarefa: avisados sobre situação e comentários. */
     private fun interested(item: Workspace.Task) = item.responsibleIds + item.createdBy
@@ -597,6 +588,5 @@ object FirebaseTaskRepository {
 
     private const val DEFAULT_USER_NAME = "Usuário"
     private const val MAX_HISTORY_VALUE_LENGTH = 2000
-    private const val MAX_HISTORY_LOADED = 100L
     private const val MAX_DELETE_BATCH_SIZE = 10
 }

@@ -439,9 +439,7 @@ object FirebaseTeamRepository {
             hasNewMembers = previous?.hasNewMembers == true || someoneJoined,
             createdBy = createdBy,
             tasksLoaded = previous?.tasksLoaded ?: false,
-            invitedEmails = document.stringList("invitedEmails").toMutableList(),
-            history = previous?.history ?: mutableListOf(),
-            historyLoaded = previous?.historyLoaded ?: false
+            invitedEmails = document.stringList("invitedEmails").toMutableList()
         )
     }
 
