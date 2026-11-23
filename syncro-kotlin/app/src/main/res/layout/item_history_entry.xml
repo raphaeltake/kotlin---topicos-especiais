@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Um registro do histórico da tarefa (RF25): quem fez a alteração, valores
+     anterior e novo e a data. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:background="@drawable/bg_card"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvHistoryAction"
+        style="@style/Screen.Label"
+        android:textSize="15sp"
+        tools:text="@string/history_task_created" />
+
+    <TextView
+        android:id="@+id/tvHistoryDetail"
+        style="@style/Screen.Body"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_card_soft"
+        android:padding="12dp"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvHistoryDate"
+        style="@style/Screen.Body"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        tools:text="@string/screen_sample_date" />
+</LinearLayout>

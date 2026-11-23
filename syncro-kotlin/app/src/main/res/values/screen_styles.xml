@@ -1,132 +1,334 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Mobile typography and controls based on the existing invite and create-team screens. -->
+    <!-- Tipografia e controles compartilhados por todas as telas. -->
 
-    <style
-        name="Screen.Body"
-        parent="">
+    <style name="Screen.Body" parent="">
         <item name="android:layout_width">match_parent</item>
-
         <item name="android:layout_height">wrap_content</item>
-
         <item name="android:textColor">@color/gray</item>
-
         <item name="android:textSize">14sp</item>
-
         <item name="android:lineSpacingExtra">4dp</item>
     </style>
 
-    <style
-        name="Screen.Label"
-        parent="Screen.Body">
-        <item name="android:textColor">@color/black</item>
-
+    <style name="Screen.Label" parent="Screen.Body">
+        <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">16sp</item>
-
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:lineSpacingExtra">2dp</item>
     </style>
 
-    <style
-        name="Screen.Section"
-        parent="Screen.Label">
+    <style name="Screen.Section" parent="Screen.Label">
         <item name="android:textSize">18sp</item>
-    </style>
-
-    <style
-        name="Screen.Title"
-        parent="Screen.Label">
-        <item name="android:textSize">22sp</item>
-    </style>
-
-    <style
-        name="Screen.Badge"
-        parent="Screen.Label">
-        <item name="android:layout_width">wrap_content</item>
-
-        <item name="android:textSize">12sp</item>
-
-        <item name="android:background">@drawable/bg_badge</item>
-
-        <item name="android:paddingHorizontal">12dp</item>
-
-        <item name="android:paddingVertical">4dp</item>
-    </style>
-
-    <style
-        name="Screen.Button.Primary"
-        parent="Widget.Material3.Button">
-        <item name="android:layout_width">match_parent</item>
-
-        <item name="android:layout_height">wrap_content</item>
-
-        <item name="android:minHeight">52dp</item>
-
-        <item name="android:insetTop">0dp</item>
-
-        <item name="android:insetBottom">0dp</item>
-
-        <item name="android:paddingVertical">12dp</item>
-
-        <item name="android:textAllCaps">false</item>
-
-        <item name="android:textColor">@color/white</item>
-
+        <item name="android:fontFamily">sans-serif</item>
         <item name="android:textStyle">bold</item>
-
-        <item name="backgroundTint">@color/blue</item>
-
-        <item name="cornerRadius">8dp</item>
-
-        <item name="iconTint">@color/white</item>
-
-        <item name="iconGravity">textStart</item>
-
-        <item name="iconSize">20dp</item>
+        <item name="android:letterSpacing">-0.01</item>
     </style>
 
-    <style
-        name="Screen.Button.Outline"
-        parent="Screen.Button.Primary">
-        <item name="backgroundTint">@color/white</item>
-
-        <item name="android:textColor">@color/blue</item>
-
-        <item name="iconTint">@color/blue</item>
-
-        <item name="strokeColor">@color/blue</item>
-
-        <item name="strokeWidth">1dp</item>
+    <style name="Screen.Title" parent="Screen.Section">
+        <item name="android:textSize">24sp</item>
+        <item name="android:letterSpacing">-0.02</item>
     </style>
 
-    <style
-        name="Screen.Button.Danger"
-        parent="Screen.Button.Primary">
-        <item name="backgroundTint">@color/status_red</item>
+    <style name="Screen.Subtitle" parent="Screen.Body">
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:textSize">15sp</item>
     </style>
 
-    <style
-        name="Screen.Button.Text"
-        parent="Screen.Button.Outline">
-        <item name="backgroundTint">@android:color/transparent</item>
-
-        <item name="strokeWidth">0dp</item>
-
-        <item name="android:minHeight">48dp</item>
-
+    <!-- Rótulo curto em caixa alta usado para separar seções. -->
+    <style name="Screen.Overline" parent="Screen.Body">
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:lineSpacingExtra">0dp</item>
     </style>
 
-    <style
-        name="Screen.Icon"
-        parent="">
-        <item name="android:layout_width">48dp</item>
+    <style name="Screen.Badge" parent="Screen.Label">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:background">@drawable/bg_badge</item>
+        <item name="android:paddingHorizontal">10dp</item>
+        <item name="android:paddingVertical">4dp</item>
+        <item name="android:lineSpacingExtra">0dp</item>
+    </style>
 
-        <item name="android:layout_height">48dp</item>
+    <!-- Chip informativo (membros, tarefas, papel). -->
+    <style name="Screen.Chip" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_chip</item>
+        <item name="android:drawablePadding">6dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingVertical">6dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
 
-        <item name="android:padding">12dp</item>
+    <style name="Screen.Chip.Blue">
+        <item name="android:background">@drawable/bg_chip_blue</item>
+        <item name="android:textColor">@color/blue_dark</item>
+        <item name="android:drawableTint">@color/blue</item>
+    </style>
 
-        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    <!-- Iniciais do usuário/equipe dentro de um círculo. -->
+    <style name="Screen.Avatar" parent="">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@drawable/bg_avatar</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/blue_dark</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="android:maxLines">1</item>
+    </style>
 
+    <!-- Ícone dentro de um quadrado arredondado colorido. -->
+    <style name="Screen.IconTile" parent="">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:padding">11dp</item>
+        <item name="android:background">@drawable/bg_icon_tile_blue</item>
+        <item name="android:importantForAccessibility">no</item>
         <item name="tint">@color/blue</item>
+    </style>
+
+    <style name="Screen.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingVertical">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="backgroundTint">@color/btn_primary_bg</item>
+        <item name="rippleColor">@color/white_20</item>
+        <item name="cornerRadius">@dimen/radius_button</item>
+        <item name="iconTint">@color/white</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">10dp</item>
+        <item name="iconSize">20dp</item>
+        <item name="elevation">0dp</item>
+    </style>
+
+    <!-- Botão secundário neutro (ex.: Cancelar). -->
+    <style name="Screen.Button.Outline" parent="Screen.Button.Primary">
+        <item name="backgroundTint">@color/light_gray</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="iconTint">@color/text_primary</item>
+        <item name="rippleColor">@color/ripple_dark</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <!-- Botão secundário em azul suave. -->
+    <style name="Screen.Button.Tonal" parent="Screen.Button.Primary">
+        <item name="backgroundTint">@color/blue_soft_strong</item>
+        <item name="android:textColor">@color/blue_dark</item>
+        <item name="iconTint">@color/blue_dark</item>
+        <item name="rippleColor">@color/ripple_blue</item>
+    </style>
+
+    <style name="Screen.Button.Danger" parent="Screen.Button.Primary">
+        <item name="backgroundTint">@color/status_red_strong</item>
+    </style>
+
+    <!-- Ação destrutiva com menos peso visual (ex.: Apagar equipe). -->
+    <style name="Screen.Button.DangerTonal" parent="Screen.Button.Primary">
+        <item name="backgroundTint">@color/status_red_bg</item>
+        <item name="android:textColor">@color/status_red_text</item>
+        <item name="iconTint">@color/status_red_text</item>
+        <item name="rippleColor">@color/ripple_red</item>
+    </style>
+
+    <style name="Screen.Button.Text" parent="Screen.Button.Outline">
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="android:textColor">@color/blue</item>
+        <item name="iconTint">@color/blue</item>
+        <item name="rippleColor">@color/ripple_blue</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Botão de ação em linha (LinearLayout com ícone e texto). -->
+    <style name="Screen.ActionRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/button_height</item>
+        <item name="android:background">@drawable/bg_button_blue</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingHorizontal">16dp</item>
+    </style>
+
+    <style name="Screen.ActionRow.Label" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">10dp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Screen.ActionRow.Icon" parent="">
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">20dp</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="tint">@color/white</item>
+    </style>
+
+    <style name="Screen.Icon" parent="">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="tint">@color/gray</item>
+    </style>
+
+    <!-- Botão de ícone circular com borda (barras superiores). -->
+    <style name="Screen.IconButton" parent="">
+        <item name="android:layout_width">@dimen/top_bar_icon_touch_size</item>
+        <item name="android:layout_height">@dimen/top_bar_icon_touch_size</item>
+        <item name="android:padding">@dimen/top_bar_icon_padding</item>
+        <item name="android:background">@drawable/bg_icon_button</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="tint">@color/text_primary</item>
+    </style>
+
+    <!-- Variante translúcida para uso sobre o gradiente azul. -->
+    <style name="Screen.IconButton.Glass">
+        <item name="android:background">@drawable/bg_icon_button_glass</item>
+        <item name="tint">@color/white</item>
+    </style>
+
+    <!-- Barra superior: fundo da página, sem divisória. -->
+    <style name="Screen.TopBar" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/top_bar_height</item>
+        <item name="android:background">@color/bg_light</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingHorizontal">@dimen/top_bar_horizontal_padding</item>
+    </style>
+
+    <style name="Screen.TopBar.Title" parent="Screen.Section">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginHorizontal">12dp</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <!-- Rodapé fixo com borda superior. -->
+    <style name="Screen.Footer" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_bottom_bar</item>
+        <item name="android:paddingHorizontal">20dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+    </style>
+
+    <!-- Cartão branco padrão. -->
+    <style name="Screen.Card" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:padding">20dp</item>
+    </style>
+
+    <!-- Conteúdo dos diálogos. -->
+    <style name="Screen.Dialog.Content" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingHorizontal">24dp</item>
+        <item name="android:paddingTop">28dp</item>
+        <item name="android:paddingBottom">24dp</item>
+    </style>
+
+    <style name="Screen.Dialog.Title" parent="Screen.Section">
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="Screen.Dialog.Message" parent="Screen.Body">
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Ícone de destaque no topo dos diálogos de confirmação. -->
+    <style name="Screen.Dialog.Icon" parent="">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="android:padding">15dp</item>
+        <item name="android:background">@drawable/bg_icon_circle_red</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="tint">@color/status_red_strong</item>
+    </style>
+
+    <style name="Screen.Dialog.Buttons" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">28dp</item>
+        <item name="android:baselineAligned">false</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="Screen.Dialog.Button.Cancel" parent="Screen.Button.Outline">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">6dp</item>
+    </style>
+
+    <style name="Screen.Dialog.Button.Confirm" parent="Screen.Button.Primary">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">6dp</item>
+    </style>
+
+    <style name="Screen.Dialog.Button.Danger" parent="Screen.Button.Danger">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">6dp</item>
+    </style>
+
+    <!-- Campo de formulário usado nos diálogos. -->
+    <style name="Screen.Field" parent="Widget.Syncro.TextInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">14dp</item>
+    </style>
+
+    <style name="Screen.Field.Edit" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:inputType">textCapSentences</item>
+        <item name="android:imeOptions">actionNext</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+
+    <style name="Screen.Field.Edit.Multiline">
+        <item name="android:minHeight">128dp</item>
+        <item name="android:gravity">top|start</item>
+        <item name="android:inputType">textCapSentences|textMultiLine</item>
+        <item name="android:imeOptions">flagNoEnterAction</item>
+        <item name="android:minLines">4</item>
+        <item name="android:maxLines">10</item>
     </style>
 </resources>

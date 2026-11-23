@@ -1,35 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Referência: 10 - Notificações.png. Paleta e componentes dos layouts existentes. -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bg_light">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/top_bar_height"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="@color/white"
-        android:paddingHorizontal="@dimen/top_bar_horizontal_padding">
+    android:background="@color/bg_light"
+    android:orientation="vertical">
+
+    <LinearLayout style="@style/Screen.TopBar">
+
         <ImageButton
             android:id="@+id/btnBack"
-            style="@style/Screen.Icon"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:padding="@dimen/top_bar_icon_padding"
-            android:src="@drawable/ic_arrow_back"
+            style="@style/Screen.IconButton"
             android:contentDescription="@string/screen_back"
-            app:tint="@color/black" />
+            android:src="@drawable/ic_arrow_back" />
+
         <TextView
             android:id="@+id/tvTitle"
-            style="@style/Screen.Title"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
+            style="@style/Screen.TopBar.Title"
             android:text="@string/screen_notifications" />
     </LinearLayout>
 
@@ -37,94 +24,281 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true"
         android:clipToPadding="false"
-        android:overScrollMode="ifContentScrolls">
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_card"
-                android:padding="20dp">
-                <TextView
-                    android:id="@+id/tvNotification1"
-                    style="@style/Screen.Label"
-                    android:text="@string/screen_notification_0" />
-            </LinearLayout>
+            android:paddingStart="@dimen/screen_padding"
+            android:paddingEnd="@dimen/screen_padding"
+            android:paddingBottom="24dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_card"
-                android:padding="20dp">
-                <TextView
-                    android:id="@+id/tvNotification2"
-                    style="@style/Screen.Label"
-                    android:text="@string/screen_notification_1" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tvNotificationsSubtitle"
+                style="@style/Screen.Body"
+                android:text="@string/screen_notifications_subtitle" />
 
+            <!-- Convite pendente -->
             <LinearLayout
+                android:id="@+id/notificationInviteCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_card_highlight"
                 android:orientation="vertical"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_card"
-                android:padding="20dp">
-                <TextView
-                    android:id="@+id/tvNotification3"
-                    style="@style/Screen.Label"
-                    android:text="@string/screen_notification_2" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_card"
-                android:padding="20dp">
-                <TextView
-                    android:id="@+id/tvNotification4"
-                    style="@style/Screen.Label"
-                    android:text="@string/screen_notification_3" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_card"
-                android:padding="20dp">
-                <TextView
-                    android:id="@+id/tvNotification5"
-                    style="@style/Screen.Label"
-                    android:text="@string/screen_notification_4" />
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="16dp">
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAcceptInvite"
-                        style="@style/Screen.Button.Primary"
-                        android:text="@string/screen_accept_invite" />
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        style="@style/Screen.IconTile"
+                        android:src="@drawable/ic_group_add" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Screen.Overline"
+                            android:text="@string/screen_notification_invite_label"
+                            android:textColor="@color/blue"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tvNotification5"
+                            style="@style/Screen.Label"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/screen_notification_4"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnDeclineInvite"
                         style="@style/Screen.Button.Outline"
-                        android:text="@string/screen_decline_invite"
-                        android:layout_marginTop="8dp" />
+                        android:layout_width="0dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:minHeight="48dp"
+                        android:text="@string/screen_decline_invite" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAcceptInvite"
+                        style="@style/Screen.Button.Primary"
+                        android:layout_width="0dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:minHeight="48dp"
+                        android:text="@string/screen_accept_invite" />
                 </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvActivityLabel"
+                style="@style/Screen.Overline"
+                android:layout_marginTop="24dp"
+                android:text="@string/screen_notifications_activity" />
+
+            <!-- Nova tarefa -->
+            <LinearLayout
+                android:id="@+id/notificationCard1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_card_pressable"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    style="@style/Screen.IconTile"
+                    android:src="@drawable/ic_team_tasks" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvNotification1"
+                        style="@style/Screen.Label"
+                        android:text="@string/screen_notification_0"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        style="@style/Screen.Body"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/screen_notification_open"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <!-- Novo membro -->
+            <LinearLayout
+                android:id="@+id/notificationCard2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card_pressable"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    style="@style/Screen.IconTile"
+                    android:background="@drawable/bg_icon_tile_green"
+                    android:src="@drawable/ic_person_add"
+                    app:tint="@color/status_green_text" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvNotification2"
+                        style="@style/Screen.Label"
+                        android:text="@string/screen_notification_1"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        style="@style/Screen.Body"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/screen_notification_open"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <!-- Pedido de entrada -->
+            <LinearLayout
+                android:id="@+id/notificationCard3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card_pressable"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    style="@style/Screen.IconTile"
+                    android:background="@drawable/bg_icon_tile_yellow"
+                    android:src="@drawable/ic_team_members"
+                    app:tint="@color/status_yellow_text" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvNotification3"
+                        style="@style/Screen.Label"
+                        android:text="@string/screen_notification_2"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        style="@style/Screen.Body"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/screen_notification_open"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <!-- Convite aceito -->
+            <LinearLayout
+                android:id="@+id/notificationCard4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card_pressable"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    style="@style/Screen.IconTile"
+                    android:background="@drawable/bg_icon_tile_green"
+                    android:src="@drawable/ic_check_circle"
+                    app:tint="@color/status_green_text" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvNotification4"
+                        style="@style/Screen.Label"
+                        android:text="@string/screen_notification_3"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        style="@style/Screen.Body"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/screen_notification_open"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

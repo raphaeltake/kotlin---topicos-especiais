@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/taskCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -9,60 +9,79 @@
     android:background="@drawable/bg_task_card_green"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground"
-    android:padding="16dp">
+    android:paddingStart="30dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
     <TextView
         android:id="@+id/tvTaskTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:textColor="@color/black"
+        android:layout_marginEnd="10dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="2"
+        android:textColor="@color/text_primary"
         android:textSize="16sp"
-        android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@id/tvStatusBadge"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Planejar próxima sprint" />
 
     <TextView
         android:id="@+id/tvStatusBadge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_badge"
-        android:backgroundTint="@color/status_green_bg"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="4dp"
-        android:textColor="@color/status_green"
+        style="@style/Screen.Badge"
         android:textSize="11sp"
-        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Pendente" />
 
     <TextView
         android:id="@+id/tvResponsibles"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="12dp"
+        android:drawableStart="@drawable/ic_person_small"
+        android:drawablePadding="6dp"
+        android:drawableTint="@color/gray"
         android:ellipsize="end"
+        android:gravity="center_vertical"
         android:maxLines="1"
         android:textColor="@color/gray"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@id/tvDueDate"
-        app:layout_constraintStart_toStartOf="@id/tvTaskTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvTaskTitle" />
+        android:textSize="13sp"
+        app:layout_constraintEnd_toStartOf="@id/dateLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTaskTitle"
+        tools:text="Ana Souza" />
 
-    <TextView
-        android:id="@+id/tvDueDate"
+    <LinearLayout
+        android:id="@+id/dateLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawablePadding="4dp"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:drawableStartCompat="@drawable/ic_hourglass"
-        app:drawableTint="@color/black"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="@id/tvResponsibles"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvResponsibles" />
+        app:layout_constraintTop_toTopOf="@id/tvResponsibles">
+
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_calendar_small"
+            app:tint="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tvDueDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            tools:text="23/09/2026" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

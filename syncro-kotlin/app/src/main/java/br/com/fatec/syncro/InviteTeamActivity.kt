@@ -35,16 +35,14 @@ class InviteTeamActivity : AppCompatActivity() {
         setContentView(R.layout.activity_invite_team)
         val currentTeam = Workspace.team(intent.getStringExtra(Navigation.TEAM))
         if (currentTeam == null) { Navigation.home(this); return }
-        Navigation.toolbar(this, currentTeam.id)
+        // Aberta a partir de "Gerenciar membros": ao terminar, volta para lá
+        // em vez de empilhar uma nova tela da equipe.
+        val returnToCaller = intent.getBooleanExtra(Navigation.RETURN_TO_CALLER, false)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.inviteTeamRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
-        }
-
-        findViewById<View>(R.id.btnBack).setOnClickListener {
-            finish()
         }
 
         val teamCode = findViewById<TextView>(R.id.tvTeamCode)
@@ -84,6 +82,11 @@ class InviteTeamActivity : AppCompatActivity() {
                     getString(R.string.invite_email_invalid_error)
                 invitedEmails.any { it.equals(email, ignoreCase = true) } ->
                     getString(R.string.invite_email_duplicate_error)
+                // UC08 A2: quem já participa não precisa de convite.
+                currentTeam.members.any { it.email.equals(email, ignoreCase = true) } ->
+                    getString(R.string.invite_already_member)
+                currentTeam.invitedEmails.any { it.equals(email, ignoreCase = true) } ->
+                    getString(R.string.invite_already_pending)
                 else -> null
             }
 
@@ -120,13 +123,30 @@ class InviteTeamActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<View>(R.id.btnInvite).setOnClickListener {
+        val inviteButton = findViewById<View>(R.id.btnInvite)
+        inviteButton.setOnClickListener {
+            if (!inviteButton.isEnabled) return@setOnClickListener
             if (!emailInput.text.isNullOrBlank()) {
                 addEmail()
                 if (emailInputLayout.error != null) return@setOnClickListener
             }
-            Navigation.open(this, if (invitedEmails.isEmpty()) "team" else "success", currentTeam.id)
-            finish()
+            if (invitedEmails.isEmpty()) {
+                if (!returnToCaller) Navigation.open(this, "team", currentTeam.id)
+                finish()
+                return@setOnClickListener
+            }
+
+            inviteButton.isEnabled = false
+            FirebaseTeamRepository.inviteMembers(currentTeam, invitedEmails.toList()) { result ->
+                if (isDestroyed) return@inviteMembers
+                inviteButton.isEnabled = true
+                result.onSuccess {
+                    Navigation.open(this, "success", currentTeam.id, returnToCaller = returnToCaller)
+                    finish()
+                }.onFailure { error ->
+                    emailInputLayout.error = FirebaseTeamRepository.errorMessage(this, error)
+                }
+            }
         }
     }
 
@@ -143,14 +163,14 @@ class InviteTeamActivity : AppCompatActivity() {
     private fun renderEmailList(container: LinearLayout) {
         container.removeAllViews()
         findViewById<TextView>(R.id.tvInviteAction).text =
-            if (invitedEmails.isEmpty()) "Continuar sem convidar" else getString(R.string.invite_button)
+            getString(if (invitedEmails.isEmpty()) R.string.continue_without_invite else R.string.invite_button)
 
         invitedEmails.forEach { email ->
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
                 setBackgroundResource(R.drawable.bg_email_chip)
-                setPadding(16.dp, 4.dp, 4.dp, 4.dp)
+                setPadding(10.dp, 8.dp, 4.dp, 8.dp)
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -159,19 +179,39 @@ class InviteTeamActivity : AppCompatActivity() {
                 }
             }
 
+            // Inicial do e-mail em um círculo, no mesmo estilo dos avatares de membros.
+            val avatar = TextView(this).apply {
+                text = email.take(1).uppercase()
+                textSize = 14f
+                gravity = android.view.Gravity.CENTER
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                setTextColor(ContextCompat.getColor(context, R.color.blue_dark))
+                setBackgroundResource(R.drawable.bg_avatar)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                layoutParams = LinearLayout.LayoutParams(36.dp, 36.dp)
+            }
+
             val emailText = TextView(this).apply {
                 text = email
                 textSize = 14f
-                setTextColor(ContextCompat.getColor(context, R.color.black))
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginStart = 12.dp
+                }
             }
 
             val removeButton = ImageButton(this).apply {
                 setImageResource(R.drawable.ic_close_circle)
                 imageTintList = ColorStateList.valueOf(
-                    ContextCompat.getColor(context, R.color.blue)
+                    ContextCompat.getColor(context, R.color.text_muted)
                 )
-                setBackgroundResource(android.R.color.transparent)
+                val ripple = android.util.TypedValue()
+                context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, ripple, true)
+                setBackgroundResource(ripple.resourceId)
+                setPadding(10.dp, 10.dp, 10.dp, 10.dp)
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                 contentDescription = getString(R.string.remove_email, email)
                 layoutParams = LinearLayout.LayoutParams(40.dp, 40.dp)
                 setOnClickListener {
@@ -180,6 +220,7 @@ class InviteTeamActivity : AppCompatActivity() {
                 }
             }
 
+            row.addView(avatar)
             row.addView(emailText)
             row.addView(removeButton)
             container.addView(row)

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient
+                android:angle="315"
+                android:endColor="@color/blue_dark"
+                android:centerColor="@color/blue"
+                android:startColor="@color/blue_mid"
+                android:type="linear" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <!-- Círculos decorativos. -->
+    <item
+        android:width="180dp"
+        android:height="180dp"
+        android:gravity="top|end"
+        android:end="-56dp"
+        android:top="-72dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/white_12" />
+        </shape>
+    </item>
+    <item
+        android:width="96dp"
+        android:height="96dp"
+        android:gravity="bottom|end"
+        android:bottom="-40dp"
+        android:end="64dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/white_12" />
+        </shape>
+    </item>
+</layer-list>

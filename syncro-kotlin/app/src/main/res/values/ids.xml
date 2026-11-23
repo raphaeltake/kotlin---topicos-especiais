@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="etTeamCode" type="id" />
+    <item name="teamDescriptionInputLayout" type="id" />
+    <item name="etNewTeamDescription" type="id" />
 </resources>

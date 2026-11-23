@@ -1,5 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services) apply false
+}
+
+// O arquivo e emitido pelo Console do Firebase e identifica o projeto remoto.
+// A aplicacao do plugin e condicional para que o projeto continue compilando
+// enquanto cada desenvolvedor ainda nao baixou sua copia do arquivo.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
@@ -32,6 +40,11 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
+
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)

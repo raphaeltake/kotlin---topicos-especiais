@@ -5,15 +5,14 @@
     android:id="@+id/teamsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8FAFD"
-    tools:context=".MainActivity">
+    android:background="@color/bg_light"
+    tools:context=".TeamsActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="0dp"
         android:layout_height="@dimen/top_bar_height"
-        android:layout_marginTop="8dp"
-        android:background="@color/white"
+        android:background="@color/bg_light"
         android:paddingStart="@dimen/top_bar_horizontal_padding"
         android:paddingEnd="@dimen/top_bar_horizontal_padding"
         app:layout_constraintEnd_toEndOf="parent"
@@ -25,7 +24,7 @@
             android:layout_width="@dimen/top_bar_logo_width"
             android:layout_height="@dimen/top_bar_logo_height"
             android:contentDescription="@string/app_name"
-            android:scaleType="fitCenter"
+            android:scaleType="fitStart"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -33,53 +32,34 @@
 
         <ImageButton
             android:id="@+id/btnProfile"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Perfil"
-            android:padding="@dimen/top_bar_icon_padding"
-            android:src="@drawable/ic_team_members"
+            style="@style/Screen.IconButton"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/profile"
+            android:src="@drawable/ic_team_member"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnNotifications"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/btnNotifications"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            style="@style/Screen.IconButton"
+            android:layout_marginEnd="8dp"
             android:contentDescription="@string/notifications"
-            android:padding="@dimen/top_bar_icon_padding"
             android:src="@drawable/ic_notifications"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnLogout"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/btnLogout"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Sair"
-            android:padding="@dimen/top_bar_icon_padding"
+            style="@style/Screen.IconButton"
+            android:contentDescription="@string/logout"
             android:src="@drawable/ic_logout"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#10162F" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <View
-        android:id="@+id/headerDivider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#E6E9F0"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header" />
 
     <ScrollView
         android:id="@+id/teamsScroll"
@@ -91,77 +71,144 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerDivider">
+        app:layout_constraintTop_toBottomOf="@id/header">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="16dp"
+            android:paddingStart="@dimen/screen_padding"
+            android:paddingTop="12dp"
+            android:paddingEnd="@dimen/screen_padding"
             android:paddingBottom="32dp">
 
+            <TextView
+                android:id="@+id/tvGreeting"
+                style="@style/Screen.Title"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="26sp"
+                tools:text="Olá, Ana" />
+
+            <TextView
+                style="@style/Screen.Subtitle"
+                android:layout_marginTop="2dp"
+                android:text="@string/home_subtitle" />
+
+            <!-- Ações rápidas -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="42dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
+                <LinearLayout
                     android:id="@+id/btnCreateTeam"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="Criar equipe"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/blue"
-                    app:cornerRadius="12dp"
-                    app:icon="@drawable/ic_person_add"
-                    app:iconGravity="textStart"
-                    app:iconPadding="7dp"
-                    app:iconSize="18dp"
-                    app:iconTint="@color/white" />
+                    android:background="@drawable/bg_quick_action_primary"
+                    android:clickable="true"
+                    android:elevation="3dp"
+                    android:focusable="true"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <com.google.android.material.button.MaterialButton
+                    <ImageView
+                        style="@style/Screen.IconTile"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="9dp"
+                        android:background="@drawable/bg_icon_tile_glass"
+                        android:src="@drawable/ic_group_add"
+                        app:tint="@color/white" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/create_team_button"
+                        android:textColor="@color/white"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/home_create_team_hint"
+                        android:textColor="@color/white_85"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/btnJoinTeam"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="6dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="Entrar em equipe"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/blue"
-                    app:cornerRadius="12dp"
-                    app:icon="@drawable/ic_enter_team"
-                    app:iconGravity="textStart"
-                    app:iconPadding="7dp"
-                    app:iconSize="18dp"
-                    app:iconTint="@color/white" />
+                    android:background="@drawable/bg_quick_action"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
+                    <ImageView
+                        style="@style/Screen.IconTile"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_key" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/join_team_button"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/home_join_team_hint"
+                        android:textColor="@color/gray"
+                        android:textSize="12sp" />
+                </LinearLayout>
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Suas equipes"
-                android:textColor="#4B5268"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="2dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/Screen.Section"
+                    android:layout_width="wrap_content"
+                    android:text="@string/your_teams" />
+
+                <TextView
+                    android:id="@+id/tvTeamsCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_counter"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:minWidth="26dp"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:textColor="@color/gray"
+                    android:textSize="12sp"
+                    tools:text="3" />
+            </LinearLayout>
 
             <include
                 android:id="@+id/teamItem1"

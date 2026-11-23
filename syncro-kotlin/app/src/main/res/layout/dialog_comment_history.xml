@@ -1,16 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Histórico de versões de um comentário. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:background="@color/bg_light">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:padding="24dp">
-        <TextView style="@style/Screen.Title" android:text="@string/screen_comment_history"
-            android:layout_marginBottom="16dp" />
-        <LinearLayout android:id="@+id/commentHistoryVersions"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:fillViewport="false"
+    android:overScrollMode="ifContentScrolls">
+
+    <LinearLayout style="@style/Screen.Dialog.Content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                style="@style/Screen.IconTile"
+                android:src="@drawable/ic_history" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Screen.Dialog.Title"
+                    android:text="@string/screen_comment_history" />
+
+                <TextView
+                    style="@style/Screen.Body"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/screen_comment_history_subtitle"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/commentHistoryVersions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnCloseHistory"
-            style="@style/Screen.Button.Primary" android:layout_marginTop="16dp"
-            android:text="@string/screen_back" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCloseHistory"
+            style="@style/Screen.Button.Outline"
+            android:layout_marginTop="20dp"
+            android:text="@string/screen_close" />
     </LinearLayout>
 </ScrollView>

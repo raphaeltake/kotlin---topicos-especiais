@@ -7,6 +7,8 @@ import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.TextView
+import android.graphics.Color
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,7 +19,29 @@ import br.com.fatec.syncro.ui.SyncroTextInput
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        if (FirebaseAccountRepository.restoreSession()) {
+            val home = Intent(this, TeamsActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            // Toque em uma notificação push: abre as notificações sobre a tela inicial.
+            if (intent.getBooleanExtra(PushNotifications.EXTRA_OPEN_NOTIFICATIONS, false)) {
+                startActivities(
+                    arrayOf(
+                        home,
+                        Intent(this, WorkspaceActivity::class.java)
+                            .putExtra(Navigation.SCREEN, "notifications")
+                    )
+                )
+            } else {
+                startActivity(home)
+            }
+            finish()
+            return
+        }
+
+        // Ícones claros na barra de status, sobre o cabeçalho azul.
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
         setContentView(R.layout.emaillogin)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

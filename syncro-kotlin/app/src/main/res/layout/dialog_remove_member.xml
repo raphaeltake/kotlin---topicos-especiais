@@ -1,47 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Referência: 16 - Confirmar exclusão de membro.png. Paleta e componentes dos layouts existentes. -->
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Confirmação: screen_confirm_remove_member -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/bg_light"
-    android:fillViewport="false"
     android:clipToPadding="false"
+    android:fillViewport="false"
     android:overScrollMode="ifContentScrolls">
+
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        style="@style/Screen.Dialog.Content"
+        android:gravity="center_horizontal">
+
+        <ImageView
+            style="@style/Screen.Dialog.Icon"
+            android:src="@drawable/ic_person_remove" />
+
         <TextView
             android:id="@+id/tvTitle"
-            style="@style/Screen.Title"
-            android:text="@string/screen_confirm_remove_member"
-            android:layout_marginBottom="16dp" />
+            style="@style/Screen.Dialog.Title"
+            android:gravity="center"
+            android:text="@string/screen_confirm_remove_member" />
+
+        <TextView
+            style="@style/Screen.Dialog.Message"
+            android:gravity="center"
+            android:text="@string/screen_confirm_remove_member_message" />
 
         <TextView
             android:id="@+id/tvMemberName"
-            style="@style/Screen.Body"
-            android:text="@string/screen_member_name"
-            android:gravity="center" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="24dp">
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_chip"
+            android:drawableStart="@drawable/ic_person_small"
+            android:drawablePadding="8dp"
+            android:drawableTint="@color/gray"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="8dp"
+            android:text="@string/screen_member_name"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+
+        <LinearLayout style="@style/Screen.Dialog.Buttons">
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
-                style="@style/Screen.Button.Outline"
+                style="@style/Screen.Dialog.Button.Cancel"
                 android:text="@string/screen_cancel" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnConfirmRemoveMember"
-                style="@style/Screen.Button.Danger"
-                android:text="@string/screen_action_btnconfirmremovemember"
-                android:layout_marginTop="8dp" />
+                style="@style/Screen.Dialog.Button.Danger"
+                android:text="@string/screen_action_btnconfirmremovemember" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

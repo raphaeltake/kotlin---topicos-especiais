@@ -1,83 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="14dp"
-    android:layout_marginTop="16dp"
-    android:layout_marginEnd="14dp"
-    android:background="@drawable/bg_card"
-    android:elevation="3dp"
-    android:foreground="?attr/selectableItemBackground"
-    android:padding="16dp"
-    android:orientation="vertical">
+    android:layout_marginTop="12dp"
+    android:background="@drawable/bg_card_pressable"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tvTeamName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nome da equipe"
-        android:textColor="#090D27"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvTeamInitial"
+            style="@style/Screen.Avatar"
+            android:background="@drawable/bg_icon_tile_blue"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="P" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTeamName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="@string/screen_team_name"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvTeamRole"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_chip"
+                android:fontFamily="sans-serif-medium"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:text="@string/role_member_short"
+                android:textColor="@color/gray"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_chevron_right" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvTeamDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
-        android:text="Descrição da equipe"
-        android:textColor="#6C7184"
-        android:textSize="12sp" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:background="#D9DEE9" />
+        android:layout_marginTop="12dp"
+        android:lineSpacingExtra="3dp"
+        android:text="@string/screen_team_description"
+        android:textColor="@color/gray"
+        android:textSize="14sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="14dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:contentDescription="Membros"
-            android:src="@drawable/ic_team_member"
-            app:tint="#10162F" />
-
-        <TextView
-            android:id="@+id/tvMemberCount"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="10 membros"
-            android:textColor="#10162F"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:background="@drawable/bg_chip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="5dp">
 
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginStart="14dp"
-            android:contentDescription="Novas tarefas"
-            android:src="@drawable/ic_team_tasks"
-            app:tint="@color/blue" />
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_team_member"
+                app:tint="@color/gray" />
 
-        <TextView
-            android:id="@+id/tvNewTaskCount"
+            <TextView
+                android:id="@+id/tvMemberCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp"
+                tools:text="5 membros" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="5 novas tarefas"
-            android:textColor="@color/blue"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_chip_blue"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="5dp">
 
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_team_tasks"
+                app:tint="@color/blue" />
+
+            <TextView
+                android:id="@+id/tvNewTaskCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/blue_dark"
+                android:textSize="12sp"
+                tools:text="4 tarefas ativas" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

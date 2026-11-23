@@ -6,129 +6,131 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_light"
-    tools:context=".MainActivity">
+    tools:context=".TeamDetailsActivity">
 
-    <!-- Top Bar -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:id="@+id/topBar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/top_bar_height"
-        android:background="@color/white"
-        android:paddingHorizontal="@dimen/top_bar_horizontal_padding"
+        style="@style/Screen.TopBar"
+        android:layout_width="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Back icon in the top left -->
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Voltar"
-            android:padding="@dimen/top_bar_icon_padding"
-            android:src="@drawable/ic_arrow_back"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
+            style="@style/Screen.IconButton"
+            android:contentDescription="@string/screen_back"
+            android:src="@drawable/ic_arrow_back" />
 
-        <!-- Notifications icon in the top right -->
+        <TextView
+            style="@style/Screen.TopBar.Title"
+            android:gravity="center"
+            android:text="@string/screen_team_details" />
+
         <ImageButton
             android:id="@+id/btnNotificationsTop"
-            android:layout_width="@dimen/top_bar_icon_touch_size"
-            android:layout_height="@dimen/top_bar_icon_touch_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Notificações"
-            android:padding="@dimen/top_bar_icon_padding"
-            android:src="@drawable/ic_notifications"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            style="@style/Screen.IconButton"
+            android:contentDescription="@string/screen_notifications"
+            android:src="@drawable/ic_notifications" />
+    </LinearLayout>
 
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@+id/footerButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topBar">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingStart="@dimen/screen_padding"
+            android:paddingTop="4dp"
+            android:paddingEnd="@dimen/screen_padding"
+            android:paddingBottom="24dp">
 
-            <!-- Team Info Card -->
+            <!-- Cabeçalho da equipe -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
+                android:background="@drawable/bg_hero_gradient"
+                android:elevation="4dp"
+                android:outlineSpotShadowColor="@color/blue"
                 android:padding="20dp">
-
-                <TextView
-                    android:id="@+id/tvTeamName"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Nome equipe"
-                    android:textColor="@color/black"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@id/btnEditTeam"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:id="@+id/btnEditTeam"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:contentDescription="Editar equipe"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_edit"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvTeamName"
-                    app:layout_constraintEnd_toStartOf="@id/tvMemberCountBadge"
-                    app:layout_constraintStart_toEndOf="@+id/tvTeamName"
-                    app:layout_constraintTop_toTopOf="@+id/tvTeamName"
-                    app:tint="@color/blue" />
 
                 <TextView
                     android:id="@+id/tvMemberCountBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_card"
-                    android:backgroundTint="@color/light_gray"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:text="membros: 10"
-                    android:textColor="@color/black"
+                    android:background="@drawable/bg_chip_glass"
+                    android:drawableStart="@drawable/ic_group_small"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="@color/white"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center_vertical"
+                    android:paddingStart="10dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="@color/white"
                     android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@id/btnEditTeam"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/btnEditTeam"
+                    tools:text="5 membros" />
+
+                <ImageButton
+                    android:id="@+id/btnEditTeam"
+                    style="@style/Screen.IconButton.Glass"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="11dp"
+                    android:contentDescription="@string/screen_edit_team"
+                    android:src="@drawable/ic_edit"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvTeamName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:ellipsize="end"
+                    android:letterSpacing="-0.02"
+                    android:maxLines="2"
+                    android:textColor="@color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/btnEditTeam"
+                    tools:text="Produto Syncro" />
 
                 <TextView
                     android:id="@+id/tvTeamDescription"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Descrição da equipe"
-                    android:textColor="@color/gray"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="@string/screen_team_description"
+                    android:textColor="@color/white_85"
                     android:textSize="14sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTeamName" />
+                    app:layout_constraintTop_toBottomOf="@id/tvTeamName" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Tabs -->
+            <!-- Abas segmentadas -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="20dp"
-                android:background="@drawable/bg_card"
+                android:background="@drawable/bg_segment_track"
                 android:orientation="horizontal"
                 android:padding="4dp">
 
@@ -137,7 +139,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_card"
+                    android:background="@drawable/bg_segment_selected"
                     android:gravity="center"
                     android:orientation="horizontal">
 
@@ -145,8 +147,9 @@
                         android:id="@+id/tvTasksTabLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tarefas"
+                        android:text="@string/screen_tasks"
                         android:textColor="@color/blue"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -154,13 +157,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_counter"
                         android:gravity="center"
                         android:minWidth="24dp"
-                        android:minHeight="24dp"
-                        android:text="3"
+                        android:minHeight="22dp"
+                        android:paddingHorizontal="7dp"
                         android:textColor="@color/blue"
                         android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        tools:text="4" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -175,334 +180,97 @@
                         android:id="@+id/tvMembersTabLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Membros"
-                        android:textColor="@color/black" />
+                        android:text="@string/screen_members"
+                        android:textColor="@color/gray"
+                        android:textSize="15sp" />
 
                     <TextView
                         android:id="@+id/tvMembersTabCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_counter"
                         android:gravity="center"
                         android:minWidth="24dp"
-                        android:minHeight="24dp"
-                        android:text="10"
-                        android:textColor="@color/black"
+                        android:minHeight="22dp"
+                        android:paddingHorizontal="7dp"
+                        android:textColor="@color/gray"
                         android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        tools:text="5" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Section Title -->
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <!-- Título da seção -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp">
+                android:layout_marginTop="24dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tvTeamSectionTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Tarefas"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    style="@style/Screen.Section"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/screen_tasks" />
 
-                <ImageView
+                <ImageButton
                     android:id="@+id/btnTaskHistory"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_history"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/black" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Add Task Button -->
-            <LinearLayout
-                android:id="@+id/btnAddTask"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_button_blue"
-                android:gravity="center">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_add"
-                    app:tint="@color/white" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Adicionar tarefa"
-                    android:textColor="@color/white"
-                    android:textStyle="bold" />
+                    style="@style/Screen.IconButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="10dp"
+                    android:contentDescription="@string/screen_task_history"
+                    android:src="@drawable/ic_history" />
             </LinearLayout>
 
-            <!-- Task List -->
-            <!-- Task 1: Green (Pendente) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <!-- Adicionar tarefa -->
+            <LinearLayout
+                android:id="@+id/btnAddTask"
+                style="@style/Screen.ActionRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_button_add_dashed">
+
+                <ImageView
+                    style="@style/Screen.ActionRow.Icon"
+                    android:src="@drawable/ic_plus"
+                    app:tint="@color/blue" />
+
+                <TextView
+                    style="@style/Screen.ActionRow.Label"
+                    android:text="@string/screen_add_task"
+                    android:textColor="@color/blue" />
+            </LinearLayout>
+
+            <!-- Modelo substituído pela lista de tarefas. -->
+            <include
                 android:id="@+id/taskItem1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_task_card_green"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tvTaskTitle1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Título tarefa"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@+id/tvStatus1"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvTaskSubtitle1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Sem responsável definido"
-                    android:textColor="@color/gray"
-                    android:textSize="14sp"
-                    app:layout_constraintEnd_toStartOf="@+id/dateLayout1"
-                    app:layout_constraintStart_toStartOf="@+id/tvTaskTitle1"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle1" />
-
-                <TextView
-                    android:id="@+id/tvStatus1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_badge"
-                    android:backgroundTint="@color/status_green_bg"
-                    android:text="Pendente"
-                    android:textColor="@color/status_green"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <LinearLayout
-                    android:id="@+id/dateLayout1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvTaskSubtitle1"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvTaskSubtitle1">
-
-                    <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:src="@drawable/ic_hourglass"
-                        app:tint="@color/black" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="09/03/2026"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Task 2: Yellow (Em andamento) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/taskItem2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_task_card_yellow"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tvTaskTitle2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Título tarefa"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@+id/tvStatus2"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvTaskSubtitle2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="nome responsável 1 | nome respo..."
-                    android:textColor="@color/gray"
-                    android:textSize="14sp"
-                    app:layout_constraintEnd_toStartOf="@+id/dateLayout2"
-                    app:layout_constraintStart_toStartOf="@+id/tvTaskTitle2"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle2" />
-
-                <TextView
-                    android:id="@+id/tvStatus2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_badge"
-                    android:backgroundTint="@color/status_yellow_bg"
-                    android:text="Em andamento"
-                    android:textColor="@color/status_yellow"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <LinearLayout
-                    android:id="@+id/dateLayout2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvTaskSubtitle2"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvTaskSubtitle2">
-
-                    <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:src="@drawable/ic_hourglass"
-                        app:tint="@color/black" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="09/03/2026"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Task 3: Red (Perto de expirar) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/taskItem3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_task_card_red"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tvTaskTitle3"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Título tarefa"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@+id/tvStatus3"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvTaskSubtitle3"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Membro"
-                    android:textColor="@color/gray"
-                    android:textSize="14sp"
-                    app:layout_constraintEnd_toStartOf="@+id/dateLayout3"
-                    app:layout_constraintStart_toStartOf="@+id/tvTaskTitle3"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTaskTitle3" />
-
-                <TextView
-                    android:id="@+id/tvStatus3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_badge"
-                    android:backgroundTint="@color/status_red_bg"
-                    android:text="Perto de expirar"
-                    android:textColor="@color/status_red"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <LinearLayout
-                    android:id="@+id/dateLayout3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvTaskSubtitle3"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvTaskSubtitle3">
-
-                    <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:src="@drawable/ic_hourglass"
-                        app:tint="@color/black" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="09/03/2026"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                layout="@layout/item_flow_task" />
 
             <LinearLayout
                 android:id="@+id/membersPanel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:orientation="vertical"
                 android:visibility="gone">
 
                 <LinearLayout
                     android:id="@+id/btnManageMembers"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:background="@drawable/bg_button_blue"
-                    android:gravity="center"
-                    android:orientation="horizontal">
+                    style="@style/Screen.ActionRow"
+                    android:background="@drawable/bg_button_soft">
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:contentDescription="Gerenciar membros"
+                        style="@style/Screen.ActionRow.Icon"
                         android:src="@drawable/ic_team_members"
-                        app:tint="@color/white" />
+                        app:tint="@color/blue_dark" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="Gerenciar membros"
-                        android:textColor="@color/white"
-                        android:textStyle="bold" />
-
+                        style="@style/Screen.ActionRow.Label"
+                        android:text="@string/screen_manage_members"
+                        android:textColor="@color/blue_dark" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -516,37 +284,29 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Footer Button -->
+    <!-- Rodapé -->
     <LinearLayout
         android:id="@+id/footerButton"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="@color/white"
-        android:elevation="8dp"
-        android:gravity="center"
-        android:paddingHorizontal="20dp"
-        app:layout_constraintBottom_toBottomOf="parent">
+        style="@style/Screen.Footer"
+        android:layout_width="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
             android:id="@+id/btnLeaveTeam"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:background="@drawable/bg_button_outline"
-            android:gravity="center">
+            style="@style/Screen.ActionRow"
+            android:background="@drawable/bg_button_danger_soft">
 
             <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                style="@style/Screen.ActionRow.Icon"
                 android:src="@drawable/ic_logout"
-                app:tint="@color/blue" />
+                app:tint="@color/status_red_text" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Sair da equipe"
-                android:textColor="@color/blue"
-                android:textStyle="bold" />
+                style="@style/Screen.ActionRow.Label"
+                android:text="@string/screen_leave_team"
+                android:textColor="@color/status_red_text" />
         </LinearLayout>
     </LinearLayout>
 
